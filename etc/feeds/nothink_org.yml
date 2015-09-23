@@ -1,0 +1,30 @@
+defaults:
+  provider: nothink.org
+  tlp: green
+  altid_tlp: white
+  confidence: 65
+  pattern: ^(\S+)$
+  values:
+    - observable
+feeds:
+  ssh:
+    remote: http://www.nothink.org/blacklist/blacklist_ssh_day.txt
+    application: ssh
+    portlist: 22
+    tags: scanner
+    protocol: tcp
+  malware_http:
+    remote: http://www.nothink.org/blacklist/blacklist_malware_http.txt
+    tags:
+      - suspicious
+  malware_dns:
+    remote: http://www.nothink.org/blacklist/blacklist_malware_dns.txt
+    tags:
+      - suspicious
+  malware_irc:
+    remote: http://www.nothink.org/blacklist/blacklist_malware_irc.txt
+    tags:
+      - suspicious
+  snmp:
+    remote: http://www.nothink.org/blacklist/blacklist_snmp_2015.txt
+    tags: scanner

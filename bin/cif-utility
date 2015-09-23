@@ -1,0 +1,119 @@
+#!/usr/bin/python3
+#
+# cif Utility - Installs/Uninstalls & Clears the storage engine
+#
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
+
+import os
+import sys
+import argparse
+import logging
+import gzip
+import shutil
+
+import requests
+
+# Append our local lib directory to the import paths
+sys.path.append("{0}/lib".format(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+import cif
+
+# Setup Paths for global usage throughout the cif package
+cif.BINDIR = os.path.dirname(os.path.abspath(__file__))
+cif.APPDIR = os.path.dirname(cif.BINDIR)
+cif.LIBDIR = "{0}/lib".format(cif.APPDIR)
+cif.ETCDIR = "{0}/etc".format(cif.APPDIR)
+cif.LOGDIR = "{0}/log".format(cif.APPDIR)
+
+parser = argparse.ArgumentParser(description='Collective Intelligence Framework Utility',
+                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+commands = parser.add_mutually_exclusive_group(required=True)
+commands.add_argument('-i', '--install', dest='install', action="store_true",
+                      help='Install tables to backend storage engine')
+commands.add_argument('-u', '--uninstall', dest='uninstall', action="store_true",
+                      help='Install tables to backend storage engine')
+commands.add_argument('-r', '--reinstall', dest='reinstall', action="store_true",
+                      help='Install tables to backend storage engine')
+commands.add_argument('-d', '--delete', dest='clear', action="store_true",
+                      help='Delete all observables')
+commands.add_argument('-g', '--geoip', dest='geoip', action="store_true",
+                      help='Download GeoIP Data into LIB directory')
+
+parser.add_argument('--verbose', dest='loglevel', nargs='?', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+                   default='WARNING')
+
+group = parser.add_argument_group('Storage Options')
+group.add_argument('-s', '--storage-engine', dest='storage', nargs='?', type=str, default='elasticsearch',
+                   help='storage engine')
+group.add_argument('-c', '--storage-connection', dest='storage_uri', nargs='?', type=str,
+                   default='http://127.0.0.1:9200', help='Connection string for connecting to the storage engine')
+
+# Assign options for global usage in the cif package
+cif.options = parser.parse_args()
+
+# Configure our basic logging.
+logging.basicConfig(level=getattr(logging, cif.options.loglevel),
+                    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S'
+                    )
+
+cif.logging = logging
+logger = cif.logging.getLogger("UTILITY")
+
+# Start Server to handle incoming connections
+if __name__ == "__main__":
+    if "geoip" in cif.options and cif.options.geoip:
+        response = requests.get("http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz", stream=True)
+        if response.status_code > 300:
+            raise Exception("Got error code from fetching feed: {0} {1}".format(response.status_code, response.reason))
+
+        # Start a temporary file to write to
+        temp = open("{0}/GeoIP/GeoLiteCity.dat.gz".format(cif.LIBDIR), "wb")
+
+        # Store 1MB at a time
+        for chunk in response.iter_content(1024 * 1024):
+            temp.write(chunk)
+
+        # Close the response
+        response.close()
+        temp.close()
+
+        with open("{0}/GeoIP/GeoLiteCity.dat".format(cif.LIBDIR), 'wb') as f_out, gzip.open("{0}/GeoIP/GeoLiteCity.dat.gz".format(cif.LIBDIR), 'rb') as f_in:
+            shutil.copyfileobj(f_in, f_out)
+        os.unlink("{0}/GeoIP/GeoLiteCity.dat.gz".format(cif.LIBDIR))
+        print("Downloaded GEOIP Data")
+        sys.exit(0)
+
+
+    backend = __import__("cif.backends.{0:s}".format(cif.options.storage.lower()),
+                         fromlist=[cif.options.storage.title()])
+
+    backend = getattr(backend, cif.options.storage.title())()
+
+    backend.connect(cif.options.storage_uri)
+
+    if "install" in cif.options and cif.options.install:
+        backend.install()
+
+        # Create a default token for the admin user
+        token = cif.types.Token({"write": 1, "admin": 1, "username": "admin", "description": 'Default admin token created on installation'})
+        backend.token_create(token=token)
+        print("Installation Completed.")
+        print("Admin Token: {0}".format(token.token))
+
+    if "reinstall" in cif.options and cif.options.reinstall:
+        backend.uninstall()
+        backend.install()
+
+        # Create a default token for the admin user
+        token = cif.types.Token({"write": 1, "admin": 1, "username": "admin", "description": 'Default admin token created on installation'})
+        backend.token_create(token=token)
+        print("Installation Completed.")
+        print("Admin Token: {0}".format(token.token))
+
+    if "uninstall" in cif.options and cif.options.uninstall:
+        backend.uninstall()
+
+    if "clear" in cif.options and cif.options.clear:
+        backend.clear()
+

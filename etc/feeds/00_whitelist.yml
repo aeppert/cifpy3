@@ -1,0 +1,34 @@
+# To enable custom whitelist dataset(s)
+#
+# 1. Create the files below or choose a new remote location
+# 2. Populate the custom whitelist file
+# 3. Uncomment the the feeds section and associated
+#    parameters
+
+parser: regex
+defaults:
+  provider: localhost
+  tlp: green
+  altid_tlp: white
+  confidence: 95
+  tags: whitelist
+
+#feeds:
+#  domain_whitelist:
+#    remote: /var/smrt/localhost_whitelist_domains
+#    pattern: '^(\S+)$'
+#    values:
+#      - observable
+#    description: 'whitelisted domain'
+#  cidr_whitelist:
+#    remote: /var/smrt/localhost_whitelist_cidr
+#    pattern: '^(\S+)$'
+#    values:
+#      - observable
+#    description: 'whitelisted cidr'
+#  url_whitelist:
+#    remote: /var/smrt/localhost_whitelist_url
+#    pattern: '^(\S+)$'
+#    values:
+#      - observable
+#    description: 'whitelisted url'

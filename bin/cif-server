@@ -1,0 +1,154 @@
+#!/usr/bin/python3
+#
+# cif Server - Listens and handles all data incoming/outgoing
+#
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
+
+import argparse
+import os
+import signal
+import logging
+import sys
+import time
+
+# Append our local lib directory to the import paths
+sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'lib'))
+
+import cif
+
+# Setup Paths for global usage throughout the cif package
+cif.BINDIR = os.path.dirname(os.path.abspath(__file__))
+cif.APPDIR = os.path.dirname(cif.BINDIR)
+cif.LIBDIR = os.path.join(cif.APPDIR, 'lib')
+cif.ETCDIR = os.path.join(cif.APPDIR, 'etc')
+cif.LOGDIR = os.path.join(cif.APPDIR, 'log')
+cif.CACHEDIR = os.path.join(cif.APPDIR, 'cache')
+
+
+parser = argparse.ArgumentParser(description='Collective Intelligence Framework Server',
+                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument('--workers', dest='workers', nargs='?', type=int, default=8,
+                    help='specify the number of workers to start')
+parser.add_argument('--threads-per-worker', dest='threads', nargs='?', type=int, default=30,
+                    help='specify the number of threads per worker')
+
+group = parser.add_argument_group('Server Options')
+group.add_argument('--listen', dest='host', nargs='?', type=str, default='0.0.0.0',
+                   help='Host to listen on')
+group.add_argument('--port', dest='port', nargs='?', type=int, default=8080, help='Port to listen on')
+group.add_argument('--noauth', dest='noauth', action="store_true",
+                   help='disable authentication (insecure: not recommended)')
+
+group = parser.add_argument_group('Storage Options')
+group.add_argument('--storage-engine', dest='storage', nargs='?', type=str, default='elasticsearch',
+                   help='storage engine')
+group.add_argument('--storage-connection', dest='storage_uri', nargs='?', type=str,
+                   default='http://127.0.0.1:9200', help='Connection string for connecting to the storage engine')
+
+group = parser.add_argument_group('Daemon Options')
+group.add_argument('--daemon', dest='daemon', action="store_true", help='run as daemon', default=False)
+group.add_argument('--pid', dest='pid', nargs='?', type=str, default='/var/run/cif-server.pid',
+                   help='pidfile location')
+group.add_argument('--user', dest='user', nargs='?', type=str, default='cif', help='Fork as this user')
+group.add_argument('--logfile', dest='logfile', nargs='?', type=str, default=os.path.join(cif.LOGDIR, 'cif-server.log'))
+group.add_argument('--loglevel', dest='loglevel', nargs='?', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+                   default='WARNING')
+
+group = parser.add_argument_group('Feed Options')
+group.add_argument('--feed-directory', dest='feed_directory', nargs='?', type=str,
+                    default=os.path.join(cif.ETCDIR, 'feeds'), help='Read feed configurations from this directory')
+group.add_argument('--feed-interval', dest='feed_interval', nargs='?', type=int, default=3600,
+                   help='Feed Fetching interval (in seconds)')
+group.add_argument('--http-proxy', dest='feed_http_proxy', nargs='?', type=str,
+                    help='HTTP Proxy for accessing feeds')
+group.add_argument('--https-proxy', dest='feed_https_proxy', nargs='?', type=str,
+                    help='HTTPS Proxy for accessing feeds')
+
+group = parser.add_argument_group('Notification Options')
+group.add_argument('--notify', action="store_true", help='enable notification')
+group.add_argument('--notify-to', dest='notify_to', nargs='?', type=str, default='root', help='notification recipient')
+group.add_argument('--notify-from', dest='notify_from', nargs='?', type=str, default='cif', help='from address')
+group.add_argument('--notify-prefix', dest='notify_prefix', nargs='?', type=str, default='[cif Server]',
+                   help='notification subject prefix')
+group.add_argument('--notify-level', dest='notify_level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+                   default='ERROR', help='level to notify at')
+
+
+# Assign options for global usage in the cif package
+cif.options = parser.parse_args()
+
+
+# Configure our basic logging.
+logging.basicConfig(level=getattr(logging, cif.options.loglevel),
+                    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S', filename=cif.options.logfile, filemode='a'
+                    )
+
+cif.logging = logging
+logger = cif.logging.getLogger("MAIN")
+
+# Set up proxies
+if "feed_http_proxy" in cif.options:
+    logger.debug("HTTP Proxy Set to: {0}".format(cif.options.feed_http_proxy))
+    cif.proxies["http"] = cif.options.feed_http_proxy
+
+if "feed_https_proxy" in cif.options:
+    logger.debug("HTTPS Proxy Set to: {0}".format(cif.options.feed_https_proxy))
+    cif.proxies["https"] = cif.options.feed_https_proxy
+
+if not os.path.exists(cif.options.feed_directory):
+    logger.fatal("Feed Config Directory ({0}) does not exist.".format(cif.options.feed_directory))
+    sys.exit(1)
+
+api = None
+feeder = None
+workers = {}
+
+# Hook into SIGINT
+def sigint_handler(signal, frame):
+    logger.warning("Received SIGINT. Exiting.")
+    try:
+        logger.info("Killing Workers")
+        for i in range(1, cif.options.workers+1):
+            cif.worker.tasks.put(None)
+        logger.info("Killing api")
+        api.terminate()
+        logger.info("Killing feeder")
+        feeder.terminate()
+    except:
+        pass
+    sys.exit(0)
+signal.signal(signal.SIGINT, sigint_handler)
+
+logger.info("Monitoring Loop: Entering")
+while True:
+    logger.info("Monitoring Loop: Checking Workers")
+    for i in range(1, cif.options.workers+1):
+        logger.info("Monitoring Loop: Checking worker {0}".format(i))
+        if i not in workers or workers[i] is None or not workers[i].is_alive():
+            if i in workers and workers[i] is not None:
+                logger.error("Monitoring Loop: worker #{0} died or not started. Restarting.".format(i))
+            workers[i] = cif.worker.Process(str(i))
+            workers[i].daemon = 1
+            workers[i].start()
+
+    cif.logging.info("Monitoring Loop: Checking api Server")
+    if api is None or not api.is_alive():
+        if api is not None:
+            logger.error("Monitoring Loop: api Server Died. Restarting.")
+        api = cif.api.Server()
+        api.daemon = 1
+        api.start()
+
+    cif.logging.info("Monitoring Loop: Checking feeder")
+    if feeder is None or not feeder.is_alive():
+        if feeder is not None:
+            logger.error("Monitoring Loop: feeder died. Restarting.")
+        feeder = cif.feeder.Feeder()
+        feeder.daemon = 1
+        feeder.start()
+
+    logger.debug("Monitoring Loop: Sleeping")
+
+    time.sleep(5)
+

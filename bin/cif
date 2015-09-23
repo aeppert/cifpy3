@@ -1,0 +1,24 @@
+#!/usr/bin/python3
+#
+# cif client - Connects to the cif REST API
+#
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
+
+import argparse
+import os
+import signal
+import logging
+import sys
+import time
+
+parser = argparse.ArgumentParser(description='Collective Intelligence Framework Client',
+                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument('--url', dest='url', nargs='?', type=str, default='http://127.0.0.1:8080',
+                    help='CIF REST API URL for connections')
+parser.add_argument(query, type=str, help="HTTP query_string style query.")
+group = parser.add_argument_group('Search Options')
+group = parser.add_argument_group('Debugging Options')
+group.add_argument('--show-request', dest='show_request', action="store_true",
+                   help='Shows the HTTP headers used when making the request')
+group.add_argument('--show-response', dest='show_resonse', action="store_true",
+                   help='Shows the HTTP headers the server responded with')

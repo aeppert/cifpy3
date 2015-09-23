@@ -1,0 +1,9 @@
+# these top-level configs are the defaults applied to each section
+confidence: 85
+tlp: green
+altid_tlp: white
+provider: garwarner.blogspot.com
+parser: 'text'
+
+feeds:
+  remote: 'http://garwarner.blogspot.com/feeds/posts/default'

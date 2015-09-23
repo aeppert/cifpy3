@@ -1,0 +1,79 @@
+parser: rss
+defaults:
+  provider: zeustracker.abuse.ch
+  tlp: green
+  alt_tlp: white
+  confidence: 85
+  altid: https://zeustracker.abuse.ch/monitor.php?search=<observable>
+  tags:
+    - zeus
+    - botnet
+
+feeds:
+  binaries:
+    remote: https://zeustracker.abuse.ch/monitor.php?urlfeed=binaries
+    description: binary
+    pattern:
+      description:
+        pattern: '^URL: ([^\,]+), status: [^\,]+, MD5 hash:'
+        values: observable
+      title:
+        pattern: ^\S+\s\((\S+)\)$
+        values: lasttime
+
+  binaries_md5:
+    remote: https://zeustracker.abuse.ch/monitor.php?urlfeed=binaries
+    description: binary
+    pattern:
+      description:
+        pattern: '^URL: [^\,]+, status: [^\,]+, MD5 hash: (\S+)$'
+        values: observable
+      title:
+        pattern: ^\S+\s\((\S+)\)$
+        values: lasttime
+
+  configs:
+    remote: https://zeustracker.abuse.ch/monitor.php?urlfeed=configs
+    description: config
+    pattern:
+      description:
+        pattern: '^URL: ([^\,]+), status: [^\,]+, version: \d, MD5 hash:'
+        values: observable
+      title:
+        pattern: ^\S+\s\((\S+)\)$
+        values: lasttime
+
+  configs_md5:
+    remote: https://zeustracker.abuse.ch/monitor.php?urlfeed=configs
+    description: config
+    pattern:
+      description:
+        pattern: '^URL: [^\,]+, status: [^\,]+, version: \d, MD5 hash: (\S+)$'
+        values: observable
+      title:
+        pattern: ^\S+\s\((\S+)\)$
+        values: lasttime
+
+  dropzones:
+    remote: https://zeustracker.abuse.ch/monitor.php?urlfeed=dropzones
+    description: dropzone
+    pattern:
+      description:
+        pattern: '^URL: ([^\,]+), status: \w+$'
+        values: observable
+
+  domains:
+    parser: regex
+    remote: https://zeustracker.abuse.ch/blocklist.php?download=domainblocklist
+    pattern: ^(\S+)$
+    values:
+      - observable
+    confidence: 65
+
+  ips:
+    parser: regex
+    remote: https://zeustracker.abuse.ch/blocklist.php?download=ipblocklist
+    pattern: ^(\S+)$
+    values:
+      - observable
+    confidence: 65

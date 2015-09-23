@@ -3,36 +3,42 @@ __author__ = 'James DeVincentis <james.d@hexhost.net>'
 import urllib.parse
 import socket
 import datetime
+
 import cif.types
 
+
 def process(observable=None):
-    # Return nothing if nothing was given
+    """Takes an observable and creates new observables from data relating to the specified observable
+
+    :param cif.types.Observable observable: Observable to source data from
+    :return: A list of new observables related to the incoming one
+    :rtype: cif.types.Observable
+    """
+
     if observable is None:
         return None
-    # If the observable is not a URL we have nothing to do
     if observable.otype != "url":
         return None
 
-    # Check to make sure the URL has a scheme
     if "://" not in observable.observable:
         url = "http://"+observable.observable
     else:
         url = observable.observable
 
-    # Parse the URL
     try:
         url = urllib.parse.urlparse(url)
     except:
+        # If it's not a valid URL, ignore it.
         return None
 
-    # Get port
+
     port = None
     try:
         port = [socket.getservbyname(url.sceheme, 'tcp')]
     except:
+        # Ignore failures. We aren't that interested
         pass
 
-    # Createa a new
     return [cif.types.Observable({
         "observable": url.hostname,
         "rdata": observable.observable,

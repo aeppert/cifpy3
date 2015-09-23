@@ -1,6 +1,7 @@
 __author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 import ipaddress
+import os
 
 import pygeoip
 
@@ -27,11 +28,11 @@ def process(observable=None):
     if cif.GEODATA is None:
         geodata = os.path.join(cif.LIBDIR, 'GeoIP', 'GeoLiteCity.dat')
         if os.path.exists:
-            cif.GEODATA = pygeoip.GeoIP(geodata, flags=pygeoip.MEMORY_CACHE
+            cif.GEODATA = pygeoip.GeoIP(geodata, flags=pygeoip.MEMORY_CACHE)
         else:
             cif.GEODATA = False
             return observable
-    elif cif.GEODATA = False
+    elif cif.GEODATA == False:
         return observable
 
     record = cif.GEODATA.record_by_addr(str(ipaddress.IPv4Interface(observable.observable).ip))

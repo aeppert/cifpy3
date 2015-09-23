@@ -9,6 +9,7 @@ import cif
 
 tasks = multiprocessing.Queue(131072)
 
+
 class Thread(threading.Thread):
     def __init__(self, worker, name, queue, backend, backendlock):
         threading.Thread.__init__(self)
@@ -18,22 +19,23 @@ class Thread(threading.Thread):
         self.logging = cif.logging.getLogger("THREAD #{0}-{1}".format(worker, name))
 
     def run(self):
+        """Runs in infinite loop waiting for items from this worker's queue. Each worker has 'cif.options.threads' of
+        these running at any one given time.
+
+        """
         self.logging.debug("Booted")
-        # Loop forever
         while True:
-            # Wait for a task
             observable = self.queue.get()
             if observable is None:
                 break
             self.logging.debug("Thread Loop: Got observable")
-            # Run meta augmentation on the first observable
+
             for name,meta in cif.worker.meta.meta.items():
                 self.logging.debug("Fetching meta using: {0}".format(name))
                 observable = meta(observable=observable)
-            # Add observable to list
+
             newobservables = []
-            # Run all plugins first
-            # plugins may create additional observables
+
             for name,plugin in cif.worker.plugins.plugins.items():
                 self.logging.debug("Running plugin: {0}".format(name))
                 result = plugin(observable=observable)
@@ -41,26 +43,24 @@ class Thread(threading.Thread):
                     for newobservable in result:
                         newobservables.append(newobservable)
 
-            # Then run the meta augmentation on the observables we now have.
             for name,meta in cif.worker.meta.meta.items():
                 for key, o in enumerate(newobservables):
                     self.logging.debug("Fetching meta using: {0} for new observable: {1}".format(name, key))
                     newobservables[key] = meta(observable=o)
 
-            # Add all of the observables back to the backend
-            # Including our original
             newobservables.insert(0, observable)
             self.logging.debug("Sending {0} observables to be created.".format(len(newobservables)))
             self.backendlock.acquire()
+
             try:
                 self.backend.observable_create(observable=newobservables)
             finally:
+                # Make sure to release the lock even if we encounter but don't trap it.
                 self.backendlock.release()
+
             self.logging.debug("worker Loop: End")
 
 
-
-# This thread will simply move items from our multiprocess queue to our threaded queue
 class QueueManager(threading.Thread):
     def __init__(self, worker, source, destination):
         threading.Thread.__init__(self)
@@ -69,6 +69,10 @@ class QueueManager(threading.Thread):
         self.die = False
 
     def run(self):
+        """Runs in an infinite loop taking any tasks from the main queue and distributing it to the workers. First one
+        to grab it from the main queue wins. Each worker process has one of these threads.
+
+        """
         while True:
             observable = self.source.get()
             if observable is None:
@@ -91,50 +95,41 @@ class Process(multiprocessing.Process):
         self.threads = {}
 
     def run(self):
+        """Connects to the backend service, spawns and threads off into worker threads that hadnle each observable. One
+        backend service connection is shared per thread however each connection *is* automatically thread safe due to
+        the backend lock.
 
-        # Initialize backend
+        """
+
         self.logging.info("Starting")
 
-        # Based on the startup options for cif-server, let's get the backend
         backend = __import__("cif.backends.{0:s}".format(cif.options.storage.title()),
                              fromlist=[cif.options.storage.title()]
                              )
         self.logging.debug("Initializing Backend {0}".format(cif.options.storage.title()))
 
-        # Now instantiate the class from that module
         self.backend = getattr(backend, cif.options.storage.title())()
         self.logging.debug("Connecting to Backend {0}".format(cif.options.storage_uri))
 
-        # Connect to the backend
         self.backend.connect(cif.options.storage_uri)
         self.logging.debug("Connected to Backend {0}".format(cif.options.storage_uri))
 
-        # Boot up queue manager
-        self.logging.debug("Booting worker #{0} Queue Manager".format(self.name))
-
-        # Allocate for out threads
         self.threads = {}
-
-        # Allocate the queue manager
         queuemanager = None
 
         self.logging.info("Entering worker loop")
         while True:
-            # Check to see if the queue manager is running
             if queuemanager is None or not queuemanager.is_alive():
-                # Our poisoned pill will come from the queue manager
+                # Check to see if the queue manager got a poison pill. We don't manage the queue directly so we trust
+                #   the queue manager to see if it got one.
                 if queuemanager is not None and queuemanager.die:
-                    # Break out
                     break
-                # If we aren't poisoned restart the queue manager
                 queuemanager = QueueManager(self.name, tasks, self.queue)
                 queuemanager.start()
 
-            # Check to see if all of the threads are running
             for i in range(1, cif.options.threads+1):
                 if i not in self.threads or self.threads[i] is None or not self.threads[i].is_alive():
                     self.threads[i] = Thread(self.name, str(i), self.queue, self.backend, self.backendlock)
                     self.threads[i].start()
 
-            # Enter the sleep loop
             time.sleep(5)

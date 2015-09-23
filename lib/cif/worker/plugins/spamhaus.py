@@ -1,8 +1,9 @@
 __author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 import ipaddress
-import dns.resolver
 import datetime
+
+import dns
 
 import cif.types
 
@@ -59,63 +60,57 @@ for i in range(20, 39):
 
 
 def process(observable=None):
+    """Takes an observable and creates new observables from data relating to the specified observable
 
-    # Nothing in, nothing out
+    :param cif.types.Observable observable: Observable to source data from
+    :return: A list of new observables related to the incoming one
+    :rtype: cif.types.Observable
+    """
     if observable is None:
         return None
 
-    # If the observable is already from here, ignore it
     if observable.provider is not None and observable.provider == provider:
         return None
 
-    # If the observable isn't an IP or domain bail out
     if observable.otype != "fqdn" and observable.tags != "ipv4":
         return None
 
-    # IPv4 Lookup & AltID
     if observable.otype == "ipv4":
-        # Create an IP object
+
         ip = ipaddress.IPv4Interface(observable.observable).ip
-        # If the observable is an IP and is private bail out
+
         if ip.is_private:
             return None
-        # Generate the lookup and altid
+
         lookup = str(dns.reversename.from_address(str(ip))).replace(".in-addr.arpa.", "") + ".zen.spamhaus.org"
         altid = "http://www.spamhaus.org/query/bl?ip={0}".format(str(ip))
-    # FQDN Lookup & AltID
+
     elif observable.otype == "fqdn":
-        # Generate the lookup and altid
+
         lookup = observable.observable + ".dbl.spamhaus.org"
         altid = "http://www.spamhaus.org/query/dbl?domain={0}".format(observable.observable)
+
     else:
+
         return None
 
-    # Create a place to store new observables
     newobservables = []
-    # Place to store records
     records = []
-    # Try to do the lookups
     try:
-        # Do the lookups and aggregate results
         for record in dns.resolver.query(lookup, 'A').response.answer:
-            # Make sure the lookup didnt fail
             if record is not None:
-                # Append the record(s)
                 records += str(record).split("\n")
-    # Catch all excepts
+
     except:
-        # Ignore failures
+        # Failures will be ignored. Failures happen for various reasons.
         pass
 
     for record in records:
-        # Split the record into it's components
         (hostname, ttl, record_class, record_type, record_value) = record.split(" ", 4)
 
-        # http://www.spamhaus.org/faq/answers.lasso?section=Spamhaus%20PBL#183
         if record_value not in codes[observable.otype]:
             continue
 
-        # Create a new observable with the data
         newobservables.append(cif.types.Observable(
             {
                 "observable": observable.observable,

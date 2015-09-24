@@ -206,3 +206,46 @@ Most of these are automatically filled in using Worker meta and plugins after th
 * admin: Admin flag. 1 = Grants this user all privileges across all groups, 0 = Not an admin (Default: 0)
 * revoked: Revokation status. 1 = Revoked and cannot be used anymore, 0 = Active
 
+Performance Notes
+------------------
+This is running with 8x workers and 30x threads. ~ 850-900 observables per second being augmented / correlated.
+
+This is while processing the largest feed in the CIF feed list. DGA list by Bambenek Consulting
+
+Only 1.25GB of memory in use by applications (half of that being used by elasticsearch).
+
+```
+top - 13:51:16 up 5 days, 10:58,  2 users,  load average: 27.30, 24.60, 19.77
+Tasks: 114 total,   3 running, 111 sleeping,   0 stopped,   0 zombie
+%Cpu0  : 55.0 us,  0.0 sy,  0.0 ni, 35.0 id,  0.0 wa,  0.0 hi,  5.0 si,  5.0 st
+%Cpu1  : 50.0 us,  0.0 sy,  0.0 ni, 50.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+%Cpu2  : 66.7 us,  5.6 sy,  0.0 ni, 27.8 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+%Cpu3  : 55.6 us,  0.0 sy,  0.0 ni, 44.4 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+%Cpu4  : 41.2 us,  0.0 sy,  0.0 ni, 58.8 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+%Cpu5  : 38.9 us,  5.6 sy,  0.0 ni, 55.6 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+%Cpu6  : 55.6 us,  0.0 sy,  0.0 ni, 44.4 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+%Cpu7  : 50.0 us,  0.0 sy,  0.0 ni, 50.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem:   8230192 total,  2582412 used,  5647780 free,   167884 buffers
+KiB Swap:  4290556 total,      412 used,  4290144 free.  1143036 cached Mem
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+ 4524 cif       20   0  657464 519600   7544 R  88.4  6.3   6:17.10 /usr/bin/python3 bin/cif-server --noauth
+ 2623 elastic+  20   0 5855960 447004  33360 S  24.6  5.4 377:24.83 /usr/lib/jvm/java-7-openjdk-amd64//bin/java -Xms256m -Xmx1g -Xss256k -D+
+ 4375 cif       20   0 2368256  24852   5572 S  44.2  0.3   7:41.93 /usr/bin/python3 bin/cif-server --noauth
+ 4440 cif       20   0 2368256  24472   5444 S  34.4  0.3   7:43.51 /usr/bin/python3 bin/cif-server --noauth
+ 4265 cif       20   0   81796  24396   8116 S   0.0  0.3   0:00.29 /usr/bin/python3 bin/cif-server --noauth
+ 4398 cif       20   0 2368256  24308   5572 S  44.2  0.3   7:41.27 /usr/bin/python3 bin/cif-server --noauth
+ 4268 cif       20   0 2368256  24188   5484 S  34.4  0.3   7:43.99 /usr/bin/python3 bin/cif-server --noauth
+ 4466 cif       20   0 2368512  24092   5388 S  34.4  0.3   7:38.03 /usr/bin/python3 bin/cif-server --noauth
+ 4267 cif       20   0 2368256  23612   5548 S  44.2  0.3   7:37.76 /usr/bin/python3 bin/cif-server --noauth
+ 4335 cif       20   0 2368256  23304   5508 S  49.1  0.3   7:38.15 /usr/bin/python3 bin/cif-server --noauth
+ 4301 cif       20   0 2368256  23004   5508 S  54.0  0.3   7:38.84 /usr/bin/python3 bin/cif-server --noauth
+ 4494 cif       20   0   83892  21656   5336 S   0.0  0.3   0:00.08 /usr/bin/python3 bin/cif-server --noauth
+```
+
+```
+             total       used       free     shared    buffers     cached
+Mem:          8037       2565       5471          0        163       1084
+-/+ buffers/cache:       1317       6719
+Swap:         4189          0       4189
+```

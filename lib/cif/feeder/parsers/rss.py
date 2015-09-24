@@ -3,11 +3,13 @@ __author__ = 'James DeVincentis <james.d@hexhost.net>'
 from ..parser import Parser
 import feedparser
 import re
+import io
 
 # Regex Parser class
 class Rss(Parser):
     def __init__(self):
-        self.rss = feedparser.parse(self.file)
+
+        self.rss = feedparser.parse(self.file.read())
         self.rss_entries = len(self.rss.entries)
         self.position = 0
         self.parsing_details['values'] = []
@@ -16,7 +18,7 @@ class Rss(Parser):
                 self.parsing_details['values'].append(value)
         self.valuecount = len(self.parsing_details['values'])
 
-    def parsefile(self, filehandle, max_objects=1000):
+    def parsefile(self, max_objects=1000):
         """Parse file provided by self.file`. Return `max_objects` at a time. This is repetitively called
 
         :param int max_objects: Number of objects to return

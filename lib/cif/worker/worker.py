@@ -103,7 +103,7 @@ class Process(multiprocessing.Process):
 
         self.logging.info("Starting")
 
-        backend = __import__("cif.backends.{0:s}".format(cif.options.storage.title()),
+        backend = __import__("cif.backends.{0:s}".format(cif.options.storage.lower()),
                              fromlist=[cif.options.storage.title()]
                              )
         self.logging.debug("Initializing Backend {0}".format(cif.options.storage.title()))

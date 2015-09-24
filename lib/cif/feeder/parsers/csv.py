@@ -41,7 +41,7 @@ class Csv(Parser):
                 break
 
             if len(line) != self.valuecount:
-                self.logging.warning("No Match - contents: '{1}'; match-count: {3}; values: {2}".format(
+                self.logging.warning("No Match - contents: '{0}'; match-count: {2}; values: {1}".format(
                     line, len(self.parsing_details["values"]), len(line))
                 )
                 continue

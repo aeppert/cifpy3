@@ -3,7 +3,6 @@ __author__ = 'James DeVincentis <james.d@hexhost.net>'
 from ..parser import Parser
 import feedparser
 import re
-import io
 
 # Regex Parser class
 class Rss(Parser):

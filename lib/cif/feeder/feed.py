@@ -27,7 +27,7 @@ class Feed(object):
                 self.logging.debug("Parsing feed file")
                 feed_config = yaml.load(stream)
         except Exception as e:
-            self.logging.error("Could not parse feed file {0}: {1}".format(self.feed_file, e))
+            self.logging.exception("Could not parse feed file {0}".format(self.feed_file))
             return
 
         if "feeds" not in feed_config.keys():

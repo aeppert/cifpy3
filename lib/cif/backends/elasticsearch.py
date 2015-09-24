@@ -235,8 +235,8 @@ class Elasticsearch(Backend):
         try:
             result = self._request(path='/cif.tokens/tokens/_search',
                                    body={"query": {"query_string": {"default_field": "token", "query": token_id}}})
-        except:
-            raise RuntimeError("Failed to get a token.")
+        except Exception as e:
+            raise RuntimeError("Failed to get a token.") from e
 
         if "hits" not in result.keys():
             raise RuntimeError("Not an elasticsearch result")

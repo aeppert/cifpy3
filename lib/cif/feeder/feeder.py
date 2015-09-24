@@ -42,7 +42,7 @@ class Feeder(multiprocessing.Process):
                 try:
                     feed.process()
                 except Exception as e:
-                    self.logging.error(str(e))
+                    self.logging.exception('Exception while Running Feed')
 
             self.logging.debug("Disconnecting from backend")
             backend.disconnect()

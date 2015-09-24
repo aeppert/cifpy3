@@ -37,6 +37,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 return False
             except RuntimeError as e:
                 self.send_error(500, 'Internal Server Error', str(e))
+                self.server.logging.exception('Exception while handling authorization')
 
         if self.token.revoked:
             self.send_error(401, 'Not Authorized', 'Token has been revoked')
@@ -131,6 +132,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     self.send_error(404, 'Not Found', str(e))
                 except Exception as e:
                     self.send_error(500, 'Internal Server Error', str(e))
+                    self.server.logging.exception('Exception while GET')
 
         elif request['object'] == "tokens":
             if not self.is_admin():

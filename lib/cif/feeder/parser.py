@@ -15,7 +15,7 @@ class Parser(object):
         self.total_objects = 0
         self.file = kwargs["file"]
         self.logging = cif.logging.getLogger('Parser')
-        self.valuecount = self.parsing_details["values"]
+        self.valuecount = len(self.parsing_details["values"])
         self.end = 0
         if "end" in self.parsing_details and self.parsing_details["end"] > 0:
             self.end = self.parsing_details["end"]

@@ -53,7 +53,7 @@ class Thread(threading.Thread):
             self.backendlock.acquire()
 
             try:
-                self.backend.observable_create(observable=newobservables)
+                self.backend.observable_create(newobservables)
             finally:
                 # Make sure to release the lock even if we encounter but don't trap it.
                 self.backendlock.release()

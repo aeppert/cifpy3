@@ -13,6 +13,8 @@ class Rss(Parser):
         self.position = 0
         self.parsing_details['values'] = []
         for element,pattern in self.parsing_details['pattern'].items():
+            if not isinstance(pattern['values'], list):
+                pattern['values'] = [pattern['values']]
             for value in pattern['values']:
                 self.parsing_details['values'].append(value)
         self.valuecount = len(self.parsing_details['values'])

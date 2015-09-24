@@ -53,7 +53,7 @@ class Parser(object):
             # Regex operates in an off by one (since 0 is the entire match), so add one
             try:
                 # Ignore fields with a null metakey
-                if metakey == "null":
+                if metakey is None:
                     continue
                 # Assign the meta
 
@@ -72,7 +72,7 @@ class Parser(object):
             # Regex operates in an off by one (since 0 is the entire match), so add one
             try:
                 # Ignore fields with a null metakey
-                if metakey == "null":
+                if metakey is None:
                     continue
                 # Assign the meta
                 meta[metakey] = line[index]

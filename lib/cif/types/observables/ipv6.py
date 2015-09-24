@@ -16,7 +16,10 @@ class Ipv6(Ipaddress):
     def mask(self, value):
         if value is not None:
             if not isinstance(value, int):
-                raise TypeError("Mask must be an integer")
+                try:
+                    value = int(value)
+                except Exception as e:
+                    raise TypeError("Mask must be an integer") from e
             if value > 128:
                 raise TypeError("Mask cannot be greater than 128 bits for IPv6")
             if value < 0:

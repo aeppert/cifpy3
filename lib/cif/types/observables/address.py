@@ -22,10 +22,26 @@ class Address(Observable):
     @portlist.setter
     def portlist(self, value):
         if value is not None:
-            if isinstance(value, int):
-                value = [value]
             if not isinstance(value, list):
-                raise TypeError("PortList must be a list of integers")
+                if isinstance(value, str):
+                    try:
+                        ports = value.split(',')
+                        value = []
+                        for port in ports:
+                            start_and_end = port.split('-')
+                            if len(start_and_end) == 2:
+                                for i in range(int(start_and_end[0]), int(start_and_end[1])+1):
+                                    value.append(i)
+                            else:
+                                value.append(int(port))
+                    except Exception as e:
+                        raise TypeError("Could not parse portlist") from e
+                if isinstance(value, int):
+                    try:
+                        value = [int(value)]
+                    except Exception as e:
+                        raise TypeError("PortList must be a list of integers") from e
+
             for v in value:
                 if not isinstance(v, int):
                     raise TypeError("PortList item must be an integer")

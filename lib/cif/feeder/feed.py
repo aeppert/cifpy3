@@ -121,12 +121,12 @@ class Feed(object):
                 temp_bin.seek(0)
 
             if zip_file is None:
-                test_header = temp_bin.read(2)
-                if test_header[0] == bytes([0x1f, 0x8b]):
+                test_header = temp.read(2)
+                temp.seek(0)
+                if test_header == b'\x1f\x8b':
                     temp_bin = gzip.open(temp)
                 else:
                     temp_bin = temp
-                    temp_bin.seek(0)
 
             file_to_parse = tempfile.TemporaryFile(mode="w+")
             while True:

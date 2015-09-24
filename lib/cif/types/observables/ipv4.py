@@ -16,9 +16,12 @@ class Ipv4(Ipaddress):
     def mask(self, value):
         if value is not None:
             if not isinstance(value, int):
-                raise TypeError("Mask must be an integer")
+                try:
+                    value = int(value)
+                except Exception as e:
+                    raise TypeError("Mask must be an integer") from e
             if value > 32:
-                raise TypeError("Mask cannot be greater than 32 bits for IPv6")
+                raise TypeError("Mask cannot be greater than 32 bits for IPv4")
             if value < 0:
                 raise TypeError("Mask cannot be less than 0 bits")
         self._mask = value

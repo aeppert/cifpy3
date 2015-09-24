@@ -40,6 +40,12 @@ class Csv(Parser):
                 self.parsing = False
                 break
 
+            if len(line) != self.valuecount:
+                self.logging.warning("No Match - position {0}; contents: '{1}'; match-count: {3}; values: {2}".format(
+                    self.file.tell(), line, len(self.parsing_details["values"]), len(line))
+                )
+                continue
+
             observable = self.create_observable_from_meta_if_not_in_journal(line)
             if observable is not None:
                 observables.append(observable)

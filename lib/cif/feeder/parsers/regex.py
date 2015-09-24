@@ -4,6 +4,7 @@ import re
 
 from ..parser import Parser
 
+
 class Regex(Parser):
 
     def __init__(self):

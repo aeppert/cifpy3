@@ -84,7 +84,6 @@ if __name__ == "__main__":
         print("Downloaded GEOIP Data")
         sys.exit(0)
 
-
     backend = __import__("cif.backends.{0:s}".format(cif.options.storage.lower()),
                          fromlist=[cif.options.storage.title()])
 

@@ -43,6 +43,12 @@ class Delim(Parser):
             if match is None:
                 continue
 
+            if len(match) != self.valuecount:
+                self.logging.warning("No Match - position {0}; contents: '{1}'; match-count: {3}; values: {2}".format(
+                    self.file.tell(), match, len(self.parsing_details["values"]), len(match))
+                )
+                continue
+
             observable = self.create_observable_from_meta_if_not_in_journal(match)
 
             if observable is not None:

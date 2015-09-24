@@ -67,11 +67,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
         # User has passed checks and are an admin, return True
         return True
 
-    def send_bad_request(self):
+    def send_bad_request(self, error=""):
         """Sends a bad request error to the client
 
         """
-        self.send_error(400, 'Bad Request', 'Requested Path: "{0}" is not valid for this api.'.format(self.path))
+        self.send_error(400, 'Bad Request', 'Requested Path: "{0}" is not valid for this api.\n{0}'.format(self.path,
+                                                                                                           error))
 
     def do_GET(self):
         """Processes GET requests. These will retrieve or search objects. Tokens can only be listed. Observables can be
@@ -101,11 +102,17 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 count = 1000
 
                 if "start" in args:
-                    start = int(args["start"])
+                    if isinstance(args["start"], list):
+                        start = int(args["start"][-1])
+                    else:
+                        start = int(args["start"])
                     del args['start']
 
                 if "count" in args:
-                    count = int(args["count"])
+                    if isinstance(args["start"], list):
+                        count = int(args["start"][-1])
+                    else:
+                        count = int(args["count"])
                     del args['count']
 
                 try:

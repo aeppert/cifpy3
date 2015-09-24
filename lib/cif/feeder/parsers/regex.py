@@ -45,9 +45,16 @@ class Regex(Parser):
 
             match = self.regex.search(line)
 
-            if match is None or match.lastindex != self.valuecount:
+            if match is None:
                 if not line.startswith('#') and not line.startswith(';'):
-                    self.logging.warning("No Match - position {0}; contents: '{1}'; match: {2}; match-count: {4} values: {3}".format(
+                    self.logging.warning("No Match - position {0}; contents: '{1}'; match: {2}; values: {3}".format(
+                        self.file.tell(), line, repr(match), len(self.parsing_details["values"]))
+                    )
+                continue
+
+            if match.lastindex != self.valuecount:
+                if not line.startswith('#') and not line.startswith(';'):
+                    self.logging.warning("No Match - position {0}; contents: '{1}'; match: {2}; match-count: {4}; values: {3}".format(
                         self.file.tell(), line, repr(match), len(self.parsing_details["values"]), match.lastindex)
                     )
                 continue

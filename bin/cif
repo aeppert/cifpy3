@@ -6,20 +6,85 @@ __author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 import argparse
 import os
-import signal
-import logging
 import sys
-import time
+import requests
+import requests.exceptions
+import yaml
 
 parser = argparse.ArgumentParser(description='Collective Intelligence Framework Client',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--url', dest='url', nargs='?', type=str, default='http://127.0.0.1:8080',
                     help='CIF REST API URL for connections')
 parser.add_argument('query', type=str, help="HTTP query_string style query.")
-group = parser.add_argument_group('Search Options')
+parser.add_argument('--config', type=str, help="Configuration file path.", default="~/.cif.yaml")
+parser.add_argument('--token', type=str, help="Token used for authentication.")
+group = parser.add_argument_group('Query Options')
+parser.add_argument('--start', type=int, help="Start at record")
+parser.add_argument('--count', type=int, help="Get this many records")
+
 
 group = parser.add_argument_group('Debugging Options')
 group.add_argument('--show-request', dest='show_request', action="store_true",
                    help='Shows the HTTP headers used when making the request')
-group.add_argument('--show-response', dest='show_resonse', action="store_true",
+group.add_argument('--show-response', dest='show_response', action="store_true",
                    help='Shows the HTTP headers the server responded with')
+
+group = parser.add_argument_group('Output Options')
+group.add_argument('--format', dest='format', choices=['cli', 'json', 'xml', 'csv', 'custom', 'single'], default="cli",
+                   help="Output in this format. Custom can be defined using --format-string 'column,column2,...', "
+                        "single will use the first column specified in 'select', by default it is 'observable'")
+group.add_argument('--select', dest='select', help='Comma separated list of columns to display.', default='observable')
+group.add_argument('--format-string', dest='format_string',
+                   help="Python style string for formatting. Requires --select. Example: '{0},{1},{2}'")
+
+options = vars(parser.parse_args())
+config = None
+
+# Only overwrite non-command line existent options
+config_path = os.path.expanduser(options['config'])
+if os.path.exists(os.path.expanduser(options['config'])):
+    with open(config_path, 'r') as stream:
+        config = yaml.load(stream)
+    for key,value in config.items():
+        if key not in options and options[key] is not None:
+            options[key] = value
+
+headers = {}
+
+if options['start'] is not None:
+    position = options['start']
+    start = 0
+else:
+    position = 0
+    start = 0
+
+if options['count'] is not None:
+    end = position + options["count"]
+else:
+    end = None
+
+if options["token"] is not None:
+    headers['Authorization'] = options["token"]
+
+while True:
+    try:
+        response = requests.get('{0}/observables?start={1}&end={2}&{3}'.format(options['url'], position, 1000, options['query']), headers=headers)
+    except requests.exceptions.ConnectionError as e:
+        sys.stderr.write("[ERROR] Could not make request to CIF Server: {0}\n".format(e))
+        sys.exit(1)
+
+    start += chunk_size
+
+    if (options['count'] - start) + chunk_size < chunk_size:
+        chunk_size = options['count'] - start
+    print(response.text)
+
+    if response.status_code == 200:
+        results = []
+        pass
+    elif response.status_code == 404:
+        pass
+    elif response.status_code == 401:
+        pass
+    elif response.status_code == 400:
+        pass

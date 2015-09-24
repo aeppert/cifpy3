@@ -44,16 +44,23 @@ class Rss(Parser):
             self.position += 1
 
             results = []
+            gotonext = False
             for element, pattern in self.parsing_details['pattern'].items():
                 if not isinstance(pattern["values"], list):
                     pattern['values'] = [pattern['values']]
                 match = re.search(pattern['pattern'], entry[element])
                 if match is None or match.lastindex != len(pattern["values"]):
-                    self.logging.warning("No Match - element {0}; contents: '{1}'; match: {2}; values: {3}".format(
+                    self.logging.warning("No Match - element {0}; contents: '{1}'; match: '{2}'; values: {3}".format(
                         element, entry[element], repr(match), len(pattern["values"]))
                     )
+                    gotonext = True
+                    continue
+
                 for index in range(1, match.lastindex+1):
                     results.append(match.group(index))
+
+            if gotonext:
+                continue
 
             observable = self.create_observable_from_meta_if_not_in_journal(results)
             if observable is not None:

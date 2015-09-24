@@ -44,8 +44,8 @@ class Delim(Parser):
                 continue
 
             if len(match) != self.valuecount:
-                self.logging.warning("No Match - position {0}; contents: '{1}'; match-count: {3}; values: {2}".format(
-                    self.file.tell(), match, len(self.parsing_details["values"]), len(match))
+                self.logging.warning("No Match - feed: {4}; position {0}; contents: '{1}'; match-count: {3}; values: {2}".format(
+                    self.file.tell(), match, len(self.parsing_details["values"]), len(match), self.parsing_details['feed_name'])
                 )
                 continue
 

@@ -62,6 +62,7 @@ class Feed(object):
 
             # Pull out parsing details for feeds from defined meta
             feed_parsing_details = dict((name, feed[name]) for name in fields_to_strip if name in feed.keys())
+            feed_parsing_details['feed_name'] = feed_name
 
             # Exclude control fields from defined meta for created observables
             feed_meta = dict((name, feed[name]) for name in feed.keys() if name not in fields_to_strip)

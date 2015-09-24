@@ -77,9 +77,9 @@ class Feed(object):
                 feed_parsing_details["values"] = [feed_parsing_details["values"]]
 
             feed_parsing_details["journal"] = "{0}/{1}-{2}-{3}-journal.pickle".format(
-                cif.CACHEDIR, os.path.basename(self.feed_file), feed_name,
+                cif.CACHEDIR, os.path.basename(self.feed_file.lower()), feed_name.lower(),
                 datetime.datetime.utcnow().strftime("%Y-%m-%d")
-            ).lower()
+            )
             self.logging.debug("Built Journal Path: {0}".format(feed_parsing_details['journal']))
 
             if feed_parsing_details["remote"].startswith('/'):

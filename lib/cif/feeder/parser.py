@@ -79,7 +79,7 @@ class Parser(object):
 
             # Catch the exceptions so we dont bail out
             except Exception as e:
-                raise Exception("Parsing error. Not enough groups '{1}' from line to satisfy values: {0}".format(e, line))
+                raise RuntimeError("Not enough meta to fill values: values: {0}; meta: {1}".format(self.parsing_details['values'], line)) from e
         return meta
 
     def checkjournal(self, observable):

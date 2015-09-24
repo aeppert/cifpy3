@@ -27,7 +27,7 @@ def process(observable=None):
 
     if cif.GEODATA is None:
         geodata = os.path.join(cif.LIBDIR, 'GeoIP', 'GeoLiteCity.dat')
-        if os.path.exists:
+        if os.path.exists(geodata):
             cif.GEODATA = pygeoip.GeoIP(geodata, flags=pygeoip.MEMORY_CACHE)
         else:
             cif.GEODATA = False

@@ -97,7 +97,7 @@ if __name__ == "__main__":
 
         # Create a default token for the admin user
         token = cif.types.Token({"write": 1, "admin": 1, "username": "admin", "description": 'Default admin token created on installation'})
-        backend.token_create(token=token)
+        backend.token_create(token)
         print("Installation Completed.")
         print("Admin Token: {0}".format(token.token))
 
@@ -107,7 +107,7 @@ if __name__ == "__main__":
 
         # Create a default token for the admin user
         token = cif.types.Token({"write": 1, "admin": 1, "username": "admin", "description": 'Default admin token created on installation'})
-        backend.token_create(token=token)
+        backend.token_create(token)
         print("Installation Completed.")
         print("Admin Token: {0}".format(token.token))
 

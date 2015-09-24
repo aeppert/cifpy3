@@ -91,8 +91,13 @@ class Feed(object):
                 self.logging.debug("Remote file detected '{0}'. Opening remotely.".format(
                     feed_parsing_details["remote"])
                 )
+                headers = {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36'
+                }
+
                 response = requests.request(feed_parsing_details["method"], feed_parsing_details["remote"],
-                                            proxies=cif.proxies, stream=True
+                                            proxies=cif.proxies, stream=True, headers=headers
+
                                             )
 
                 if response.status_code > 300:

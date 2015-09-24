@@ -67,7 +67,7 @@ def process(observable=None):
         else:
             continue
 
-        if not is_ipv4(newobservable) and not is_fqdn(newobservable):
+        if not cif.types.is_ipv4(newobservable) and not cif.types.is_fqdn(newobservable):
             continue
 
         newobservables.append(

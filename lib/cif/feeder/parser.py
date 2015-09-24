@@ -118,9 +118,11 @@ class Parser(object):
 
         # Check to see if the observable is in the Journal
         if self.checkjournal(meta["observable"]):
-
-            observable = self.create_observable_from_meta(meta)
-
+            try:
+                observable = self.create_observable_from_meta(meta)
+            except:
+                self.logging.exception("Could not create observable from meta")
+                return None
             # Create a journal entry for this observable
             self.new_journal[meta['observable']] = observable.id
         else:

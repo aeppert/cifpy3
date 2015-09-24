@@ -11,7 +11,7 @@ defaults:
 
 feeds:
   domains:
-    pattern: SERVER:([a-zA-Z0-9-.]+\.[a-z]{2,3}):(\d+[-[\d+,]+):?GROUP
+    pattern: SERVER:([a-zA-Z0-9-.]+\.[a-zA-Z]{2,3}):(\d+[-[\d+,]+):?GROUP
     values:
       - observable
       - portlist

@@ -40,6 +40,9 @@ class Csv(Parser):
                 self.parsing = False
                 break
 
+            if line[0].startswith('#') or line[0].startswith(';'):
+                continue
+
             if len(line) != self.valuecount:
                 if len(line) > self.valuecount:
                     while len(line) > self.valuecount:

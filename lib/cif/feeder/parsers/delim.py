@@ -36,7 +36,7 @@ class Delim(Parser):
                 self.parsing = False
                 break
 
-            line = self.file.readline()
+            line = self.file.readline().strip()
 
             match = line.split(self.parsing_details["pattern"])
 
@@ -47,6 +47,8 @@ class Delim(Parser):
                 continue
 
             if len(match) != self.valuecount:
+                if line[0].startswith('#') or line[0].startswith(';') or len(line) == 0:
+                    continue
                 self.logging.warning("No Match - feed: {4}; position {0}; contents: '{1}'; match-count: {3}; values: {2}".format(
                     self.file.tell(), match, len(self.parsing_details["values"]), len(match), self.parsing_details['feed_name'])
                 )

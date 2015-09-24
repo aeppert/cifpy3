@@ -40,14 +40,11 @@ class Csv(Parser):
                 self.parsing = False
                 break
 
-            if line[0].startswith('#') or line[0].startswith(';'):
-                continue
+
 
             if len(line) != self.valuecount:
-                if len(line) > self.valuecount:
-                    while len(line) > self.valuecount:
-                        line[-2] = line[-2] + line[-1]
-                        del line[-1]
+                if line[0].startswith('#') or line[0].startswith(';'):
+                    continue
                 self.logging.warning("No Match - feed: '{3}'; contents: '{0}'; match-count: {2}; values: {1}".format(
                     line, len(self.parsing_details["values"]), len(line), self.parsing_details['feed_name'])
                 )

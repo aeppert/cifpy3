@@ -4,7 +4,7 @@ from ..parser import Parser
 import feedparser
 import re
 
-# Regex Parser class
+
 class Rss(Parser):
     def __init__(self):
 

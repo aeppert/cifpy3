@@ -352,10 +352,10 @@ class Elasticsearch(Backend):
                         a.append({"and": [{"term": {param: v}} for v in value if not v.startswith('!')]})
                     for v in value:
                         if v.startswith('!'):
-                            neg.append({"term": {param: v}})
+                            neg.append({"term": {param: v[1:]}})
                 else:
                     if value.startswith('!'):
-                        neg.append({"term": {param: value}})
+                        neg.append({"term": {param: value[1:]}})
                     else:
                         a.append({"term": {param: value}})
             elif param in lte_params:

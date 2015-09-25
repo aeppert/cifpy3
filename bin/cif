@@ -9,6 +9,7 @@ import os
 import sys
 import requests
 import requests.exceptions
+import json
 import yaml
 
 parser = argparse.ArgumentParser(description='Collective Intelligence Framework Client',
@@ -19,9 +20,9 @@ parser.add_argument('query', type=str, help="HTTP query_string style query.")
 parser.add_argument('--config', type=str, help="Configuration file path.", default="~/.cif.yaml")
 parser.add_argument('--token', type=str, help="Token used for authentication.")
 group = parser.add_argument_group('Query Options')
-parser.add_argument('--start', type=int, help="Start at record")
-parser.add_argument('--count', type=int, help="Get this many records")
-
+group.add_argument('--start', type=int, help="Start at record")
+group.add_argument('--count', type=int, help="Get this many records")
+group.add_argument('--chunk-size', type=int, help="Get x records at a time from the backend", default=10000)
 
 group = parser.add_argument_group('Debugging Options')
 group.add_argument('--show-request', dest='show_request', action="store_true",
@@ -33,9 +34,10 @@ group = parser.add_argument_group('Output Options')
 group.add_argument('--format', dest='format', choices=['cli', 'json', 'xml', 'csv', 'custom', 'single'], default="cli",
                    help="Output in this format. Custom can be defined using --format-string 'column,column2,...', "
                         "single will use the first column specified in 'select', by default it is 'observable'")
-group.add_argument('--select', dest='select', help='Comma separated list of columns to display.', default='observable')
+group.add_argument('--select', dest='select', help='Comma separated list of columns to display.', default='lasttime,otype,observable,tags')
 group.add_argument('--format-string', dest='format_string',
                    help="Python style string for formatting. Requires --select. Example: '{0},{1},{2}'")
+group.add_argument('--write', dest='write', help='Filename to write output to instead of stdout')
 
 options = vars(parser.parse_args())
 config = None
@@ -51,40 +53,99 @@ if os.path.exists(os.path.expanduser(options['config'])):
 
 headers = {}
 
-if options['start'] is not None:
-    position = options['start']
-    start = 0
-else:
-    position = 0
-    start = 0
+
+
+if options['start'] is None:
+    options['start'] = 0
 
 if options['count'] is not None:
-    end = position + options["count"]
+    options['end'] = options['start'] + options['count']
+    if options['start'] + options['chunk_size'] > options['end']:
+        options['chunk_size'] = options['end'] - options['start']
 else:
-    end = None
+    options['end'] = None
 
 if options["token"] is not None:
     headers['Authorization'] = options["token"]
 
+results = []
+
+
+
 while True:
     try:
-        response = requests.get('{0}/observables?start={1}&end={2}&{3}'.format(options['url'], position, 1000, options['query']), headers=headers)
+        response = requests.get('{0}/observables?start={1}&count={2}&{3}'.format(options['url'], options['start'], options['chunk_size'], options['query']), headers=headers, stream=True)
     except requests.exceptions.ConnectionError as e:
         sys.stderr.write("[ERROR] Could not make request to CIF Server: {0}\n".format(e))
         sys.exit(1)
 
-    start += chunk_size
-
-    if (options['count'] - start) + chunk_size < chunk_size:
-        chunk_size = options['count'] - start
-    print(response.text)
-
     if response.status_code == 200:
-        results = []
-        pass
+
+        try:
+            result = json.loads(response.text)
+            results.extend(result)
+        except Exception as e:
+            raise RuntimeError("Could not fetch results from successful query") from e
+
+        options['start'] += len(result)
+
+        if options['end'] is not None:
+            if options['start'] >= options['end']:
+                break
+            elif options['start'] + options['chunk_size'] > options['end']:
+                options['chunk_size'] = options['end'] - options['start']
+        if len(result) < options['chunk_size']:
+            break
+
     elif response.status_code == 404:
-        pass
+        break
     elif response.status_code == 401:
-        pass
+        raise RuntimeError("Invalid Authentication: {0}".format(response.text))
+
     elif response.status_code == 400:
-        pass
+        raise RuntimeError("Invalid Query: {0}".format(response.text))
+
+if options['write'] is not None:
+    output_handle = open(options['write'], 'wt')
+else:
+    output_handle = sys.stdout
+
+if options['format'] == "cli":
+    import tabulate
+    headers = options['select'].split(',')
+    rows = []
+    for result in results:
+        row = []
+        for header in headers:
+            if header in result:
+                if isinstance(result[header], list):
+                    result[header] = ', '.join(result[header])
+                row.append(result[header])
+            else:
+                row.append('')
+        rows.append(row)
+    output_handle.write(tabulate.tabulate(rows, headers=headers, tablefmt="psql")+"\n")
+elif options['format'] == "json":
+    output_handle.write(json.dumps(results)+"\n")
+elif options['format'] == "xml":
+    pass
+elif options['format'] == "csv":
+    pass
+elif options['format'] == "custom":
+    columns = options['select'].split(',')
+    for result in results:
+        row = []
+        for column in columns:
+            if column in result:
+                row.append(result[column])
+            else:
+                row.append('')
+        try:
+            output_handle.write(options['format_string'].format(*row)+"\n")
+        except Exception as e:
+            raise RuntimeError("Could not use custom formatting. column count: {0}; row count: {1}.".format(len(columns), len(row))) from e
+
+elif options['format'] == "single":
+    for result in results:
+        if options['select'] in result:
+            output_handle.write(result[options['select']]+"\n")

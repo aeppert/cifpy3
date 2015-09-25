@@ -129,7 +129,7 @@ elif options['format'] == "json":
 elif options['format'] == "xml":
     if options['write'] is not None:
         output_handle.close()
-        output_handle = open(options['write'], 'wb', newline='')
+        output_handle = open(options['write'], 'wb')
     else:
         raise RuntimeError("XML output can only be written to a file.")
     observables = xml.etree.cElementTree.Element("observables")

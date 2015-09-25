@@ -127,11 +127,14 @@ if options['format'] == "cli":
 elif options['format'] == "json":
     output_handle.write(json.dumps(results)+"\n")
 elif options['format'] == "xml":
+    headers = options['select'].split(',')
+
     if options['write'] is not None:
         output_handle.close()
         output_handle = open(options['write'], 'wb')
     else:
         raise RuntimeError("XML output can only be written to a file.")
+
     observables = xml.etree.cElementTree.Element("observables")
     for result in results:
         observable = xml.etree.cElementTree.SubElement(observables, "observable")

@@ -55,6 +55,7 @@ group.add_argument('--loglevel', dest='loglevel', nargs='?', choices=['DEBUG', '
                    default='WARNING')
 
 group = parser.add_argument_group('Feed Options')
+group.add_argument('--feed-disable', dest='feed_disable', action="store_true", help='Disable Feeder program')
 group.add_argument('--feed-directory', dest='feed_directory', nargs='?', type=str,
                     default=os.path.join(cif.ETCDIR, 'feeds'), help='Read feed configurations from this directory')
 group.add_argument('--feed-interval', dest='feed_interval', nargs='?', type=int, default=3600,
@@ -113,8 +114,9 @@ def sigint_handler(signal, frame):
             cif.worker.tasks.put(None)
         logger.info("Killing api")
         api.terminate()
-        logger.info("Killing feeder")
-        feeder.terminate()
+        if not cif.options.feed_disable:
+            logger.info("Killing feeder")
+            feeder.terminate()
     except:
         pass
     sys.exit(0)
@@ -139,14 +141,14 @@ while True:
         api = cif.api.Server()
         api.daemon = 1
         api.start()
-
-    cif.logging.info("Monitoring Loop: Checking feeder")
-    if feeder is None or not feeder.is_alive():
-        if feeder is not None:
-            logger.error("Monitoring Loop: feeder died. Restarting.")
-        feeder = cif.feeder.Feeder()
-        feeder.daemon = 1
-        feeder.start()
+    if not cif.options.feed_disable:
+        cif.logging.info("Monitoring Loop: Checking feeder")
+        if feeder is None or not feeder.is_alive():
+            if feeder is not None:
+                logger.error("Monitoring Loop: feeder died. Restarting.")
+            feeder = cif.feeder.Feeder()
+            feeder.daemon = 1
+            feeder.start()
 
     logger.debug("Monitoring Loop: Sleeping")
 

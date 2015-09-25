@@ -346,7 +346,7 @@ class Elasticsearch(Backend):
         for param, value in params.items():
             if param not in lte_params and param not in gte_params:
                 if isinstance(value, list):
-                    if param in ['groups', 'tags']:
+                    if param in ['group', 'tags']:
                         a.append({"or": [{"term": {param: v}} for v in value if not v.startswith('!')]})
                     else:
                         a.append({"and": [{"term": {param: v}} for v in value if not v.startswith('!')]})

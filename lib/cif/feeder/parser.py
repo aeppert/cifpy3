@@ -1,5 +1,6 @@
 __author__ = 'James DeVincentis <james.d@hexhost.net>'
 
+import copy
 import pickle
 import os
 import re
@@ -87,10 +88,10 @@ class Parser(object):
 
     def create_observable_from_meta(self, meta):
         # Copy the meta to a new dictionary
-        tmp = self.basemeta.deepcopy()
+        tmp = copy.deepcopy(self.basemeta)
 
         # Append our parsed meta to the base meta
-        tmp.update(meta.deepcopy())
+        tmp.update(copy.deepcopy(meta))
 
         # Loop through and look for subsitutions
         for key,value in tmp.items():

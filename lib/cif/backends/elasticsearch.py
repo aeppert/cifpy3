@@ -146,14 +146,14 @@ class Elasticsearch(Backend):
                 results.append((True, "success"))
         return results
 
-    def token_delete(self, token):
+    def token_delete(self, token_id):
         """Deletes a token object
 
-        :param cif.types.Token token: Token object to be deleted
+        :param str token_id: Token id to be deleted
         :raises: RuntimeError
         """
         try:
-            return self._request(path='/cif.tokens/tokens/{0:s}'.format(token.token), method='DELETE')
+            return self._request(path='/cif.tokens/tokens/{0:s}'.format(token_id), method='DELETE')
         except Exception as e:
             raise RuntimeError("Token could not be deleted.") from e
 
@@ -363,7 +363,7 @@ class Elasticsearch(Backend):
             elif param in gte_params:
                 a.append({"range": {param: {"gte": value}}})
         if len(neg):
-            a.append({"not" : {"filter": {"and": neg}}})
+            a.append({"not": {"filter": {"and": neg}}})
         return {"query": {"filtered": {"filter": {"and": a}}}, "sort": [{'@timestamp': {"order": "desc"}}]}
 
     def uninstall(self):

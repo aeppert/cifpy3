@@ -40,7 +40,7 @@ commands.add_argument('-g', '--geoip', dest='geoip', action="store_true",
                       help='Download GeoIP Data into LIB directory')
 
 parser.add_argument('--verbose', dest='loglevel', nargs='?', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
-                   default='WARNING')
+                    default='WARNING')
 
 group = parser.add_argument_group('Storage Options')
 group.add_argument('-s', '--storage-engine', dest='storage', nargs='?', type=str, default='elasticsearch',
@@ -67,8 +67,10 @@ if __name__ == "__main__":
         if response.status_code > 300:
             raise Exception("Got error code from fetching feed: {0} {1}".format(response.status_code, response.reason))
 
+        geo_path_gz = os.path.join(cif.LIBDIR, "GeoIP", "GeoLiteCity.dat.gz")
+        geo_path = os.path.join(cif.LIBDIR, "GeoIP", "GeoLiteCity.dat")
         # Start a temporary file to write to
-        temp = open("{0}/GeoIP/GeoLiteCity.dat.gz".format(cif.LIBDIR), "wb")
+        temp = open(geo_path_gz, "wb")
 
         # Store 1MB at a time
         for chunk in response.iter_content(1024 * 1024):
@@ -78,9 +80,9 @@ if __name__ == "__main__":
         response.close()
         temp.close()
 
-        with open("{0}/GeoIP/GeoLiteCity.dat".format(cif.LIBDIR), 'wb') as f_out, gzip.open("{0}/GeoIP/GeoLiteCity.dat.gz".format(cif.LIBDIR), 'rb') as f_in:
+        with open(geo_path, 'wb') as f_out, gzip.open(geo_path_gz, 'rb') as f_in:
             shutil.copyfileobj(f_in, f_out)
-        os.unlink("{0}/GeoIP/GeoLiteCity.dat.gz".format(cif.LIBDIR))
+        os.unlink(geo_path_gz)
         print("Downloaded GEOIP Data")
         sys.exit(0)
 
@@ -95,7 +97,12 @@ if __name__ == "__main__":
         backend.install()
 
         # Create a default token for the admin user
-        token = cif.types.Token({"write": 1, "admin": 1, "username": "admin", "description": 'Default admin token created on installation'})
+        token = cif.types.Token({
+            "write": 1,
+            "admin": 1,
+            "username": "admin",
+            "description": 'Default admin token created on installation'
+        })
         backend.token_create(token)
         print("Installation Completed.")
         print("Admin Token: {0}".format(token.token))
@@ -105,7 +112,11 @@ if __name__ == "__main__":
         backend.install()
 
         # Create a default token for the admin user
-        token = cif.types.Token({"write": 1, "admin": 1, "username": "admin", "description": 'Default admin token created on installation'})
+        token = cif.types.Token({
+            "write": 1,
+            "admin": 1,
+            "username": "admin",
+            "description": 'Default admin token created on installation'})
         backend.token_create(token)
         print("Installation Completed.")
         print("Admin Token: {0}".format(token.token))
@@ -115,4 +126,3 @@ if __name__ == "__main__":
 
     if "clear" in cif.options and cif.options.clear:
         backend.clear()
-

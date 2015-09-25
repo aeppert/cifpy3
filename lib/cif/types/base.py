@@ -8,7 +8,8 @@ class Base(object):
     def __init__(self):
         self._modified_fields = set()
 
-    def _generate_random_hash(self, length=32):
+    @staticmethod
+    def _generate_random_hash(length=32):
         """Generate a hash from urandom data. Used largely to create unique IDs for Objects
 
         :param int length: Number of bytes to use when generating the hash

@@ -97,6 +97,7 @@ class Address(Observable):
     @application.setter
     def application(self, value):
         if value is not None and self.portlist is None:
+            # noinspection PyBroadException
             try:
                 self.portlist = [socket.getservbyname(value)]
             except:

@@ -3,6 +3,7 @@ __author__ = 'James DeVincentis <james.d@hexhost.net>'
 from .address import Address
 from ..basics import *
 
+
 class Ipaddress(Address):
     def __init__(self, *args, **kwargs):
         self._orientation = None

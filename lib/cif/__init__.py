@@ -8,7 +8,7 @@ LOGDIR = None
 GEODATA = None
 CACHEDIR = None
 
-MAX_BIN_SIZE = 1024 * 1024 * 10 # 10 MB
+MAX_BIN_SIZE = 1024 * 1024 * 10  # 10 MB
 
 options = None
 logging = None
@@ -18,7 +18,6 @@ from . import backends
 from . import feeder
 from . import types
 from . import worker
-
 
 CONFIDENCE_MIN = 25
 CONFIDENCE_DEFAULT = 75

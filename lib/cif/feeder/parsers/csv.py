@@ -6,7 +6,7 @@ from ..parser import Parser
 
 
 class Csv(Parser):
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.csv = csv.reader(self.file)
 
     def parsefile(self, filehandle, max_objects=1000):
@@ -27,7 +27,7 @@ class Csv(Parser):
                 try:
                     next(self.csv)
                     self.total_objects += 1
-                except:
+                except StopIteration:
                     self.parsing = False
                     return observables
 

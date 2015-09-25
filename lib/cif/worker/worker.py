@@ -11,11 +11,11 @@ tasks = multiprocessing.Queue(131072)
 
 
 class Thread(threading.Thread):
-    def __init__(self, worker, name, queue, backend, backendlock):
+    def __init__(self, worker, name, q, backend, backendlock):
         threading.Thread.__init__(self)
         self.backend = backend
         self.backendlock = backendlock
-        self.queue = queue
+        self.queue = q
         self.logging = cif.logging.getLogger("THREAD #{0}-{1}".format(worker, name))
 
     def run(self):
@@ -30,20 +30,20 @@ class Thread(threading.Thread):
                 break
             self.logging.debug("Thread Loop: Got observable")
 
-            for name,meta in cif.worker.meta.meta.items():
+            for name, meta in cif.worker.meta.meta.items():
                 self.logging.debug("Fetching meta using: {0}".format(name))
                 observable = meta(observable=observable)
 
             newobservables = []
 
-            for name,plugin in cif.worker.plugins.plugins.items():
+            for name, plugin in cif.worker.plugins.plugins.items():
                 self.logging.debug("Running plugin: {0}".format(name))
                 result = plugin(observable=observable)
                 if result is not None:
                     for newobservable in result:
                         newobservables.append(newobservable)
 
-            for name,meta in cif.worker.meta.meta.items():
+            for name, meta in cif.worker.meta.meta.items():
                 for key, o in enumerate(newobservables):
                     self.logging.debug("Fetching meta using: {0} for new observable: {1}".format(name, key))
                     newobservables[key] = meta(observable=o)
@@ -66,6 +66,7 @@ class QueueManager(threading.Thread):
         threading.Thread.__init__(self)
         self.source = source
         self.destination = destination
+        self.worker = worker
         self.die = False
 
     def run(self):

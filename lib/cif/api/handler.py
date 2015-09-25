@@ -62,7 +62,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             return True
 
         if not self.token.admin:
-            self.send_error(403, 'Forbidden', 'Only admins can view this')
+            self.send_error(403, 'Forbidden', 'Only admins can do this')
             return False
 
         # User has passed checks and are an admin, return True
@@ -98,6 +98,18 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 args = dict(
                     (k, v if len(v) > 1 else v[0]) for k, v in urllib.parse.parse_qs(request['query_string']).items()
                 )
+
+                if "noauth" not in cif.options or not cif.options.noauth:
+                    if "group" in args:
+                        if not isinstance(args["group"], list):
+                            args["group"] = [args["group"]]
+                        for idx, group in enumerate(args["group"]):
+                            if group not in self.token.groups:
+                                del group[idx]
+                        if len(args["group"]) == 0:
+                            args["group"] = self.token.groups
+                    else:
+                        args["group"] = self.token.groups
 
                 start = 0
                 count = 1000
@@ -183,11 +195,58 @@ class Handler(http.server.BaseHTTPRequestHandler):
         """
         if not self.check_authentication:
             return
-        # Put of an object.
 
-        # Check to make sure the object doesn't already exist, if it does send a 409
+        match = re.search(r'^/(?P<object>observable?|token?)/?$', self.path)
 
-        # Put the object then return a 201
+        if match is None:
+            self.send_bad_request()
+            return
+
+        # Update the ID with the given post parameters
+        content_type, parameter_dict = cgi.parse_header(self.headers.getheader('Content-Type'))
+        if content_type == 'multipart/form-data':
+            post_variables = cgi.parse_multipart(self.rfile, parameter_dict)
+        elif content_type == 'application/x-www-form-urlencoded':
+            length = int(self.headers.getheader('content-length'))
+            post_variables = urllib.parse.parse_qs(self.rfile.read(length), keep_blank_values=1)
+        else:
+            post_variables = {}
+        print(post_variables)
+        # Look up the token first
+
+        request = match.groupdict()
+
+        if request['object'] == "token":
+            if not self.is_admin():
+                return
+            try:
+                if "token" in post_variables:
+                    del post_variables["token"]
+                token = cif.types.Token(post_variables)
+                self.server.backend.token_create(token)
+            except Exception as e:
+                self.send_error(422, 'Could not process token: {0}'.format(e))
+                return
+            self.send_response(201)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(token.todict())
+
+        elif request['object'] == "observable":
+            if "observable" not in post_variables:
+                self.send_error(422, 'The observable parameter is required')
+                return
+            try:
+                if "id" in post_variables:
+                    del post_variables["id"]
+                observable = cif.types.Observable(post_variables)
+            except Exception as e:
+                self.send_error(422, 'Could not process observable: {0}'.format(e))
+                return
+
+            cif.worker.tasks.put(observable)
+            self.send_response(202)
+            self.end_headers()
 
     def do_DELETE(self):
         """Handles a DELETE HTTP request. Only tokens can be deleted at this time.
@@ -195,7 +254,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
         """
         if not self.is_admin():
             return
+
         match = re.search('^/(?P<object>token)/(?P<id>[a-fA-F0-9]{64})$', self.path)
+
         if match is None:
             self.send_error(404, 'Not Found')
             return
+
+        request = match.groupdict()
+
+        try:
+            self.server.backend.token_delete(request['id'])
+        except Exception as e:
+            self.send_error(500, "Failed to delete token: {0}".format(e))

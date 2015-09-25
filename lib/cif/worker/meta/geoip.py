@@ -32,7 +32,7 @@ def process(observable=None):
         else:
             cif.GEODATA = False
             return observable
-    elif cif.GEODATA == False:
+    elif not cif.GEODATA:
         return observable
 
     record = cif.GEODATA.record_by_addr(str(ipaddress.IPv4Interface(observable.observable).ip))

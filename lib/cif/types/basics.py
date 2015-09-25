@@ -15,6 +15,13 @@ hash_types = {
 }
 
 
+regex = {
+    'url': re.compile('^(http|https|smtp|ftp|sftp)://(\S*\.\S*)$'),
+    'url_2': re.compile(r'^([a-z0-9.-]+[a-z]{2,63}|\b(?:\d{1,3}\.){3}\d{1,3}\b)(:(\d+))?/+'),
+    'fqdn': re.compile('^((xn--)?(--)?[a-zA-Z0-9-_]+(-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,}(--p1ai)?$')
+}
+
+
 def tlp(value):
     """Validates TLP formats, makes sure it's one of the pre-determined values
 
@@ -136,7 +143,7 @@ def protocol(value):
 
 
 def is_ipv4(value):
-    """Checks to see if a value is an IPv4 addresss
+    """Checks to see if a value is an IPv4 address
 
     :param str value: Value to test
     :return: True on successful parse of an IPv4 address, False on invalid IPv4 address
@@ -171,8 +178,7 @@ def is_url(value):
     :return: True on successful parse of a URL, False on invalid URL
     :rtype bool:
     """
-    return re.match(r'^(http|https|smtp|ftp|sftp)://(\S*\.\S*)$', value) is not None or \
-           re.match(r'^([a-z0-9.-]+[a-z]{2,63}|\b(?:\d{1,3}\.){3}\d{1,3}\b)(:(\d+))?/+', value) is not None
+    return regex['url'].match(value) is not None or regex['url_2'].match(value) is not None
 
 
 def is_fqdn(value):
@@ -183,7 +189,7 @@ def is_fqdn(value):
     :return: True on successful parse of an FQDN, False on invalid FQDN
     :rtype bool:
     """
-    return re.match(r'^((xn--)?(--)?[a-zA-Z0-9-_]+(-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,}(--p1ai)?$', value) is not None
+    return regex['fqdn'].match(value) is not None
 
 
 def is_email(value):
@@ -250,7 +256,7 @@ def hash_type(value):
     :return: Returns a string containing the hash type name or None if no hash type is matched
     :rtype: str or None
     """
-    for hash_type, pattern in hash_types.items():
+    for htype, pattern in hash_types.items():
         if pattern.match(value) is not None:
-            return hash_type
+            return htype
     return None

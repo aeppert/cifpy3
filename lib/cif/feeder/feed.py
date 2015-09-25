@@ -26,8 +26,8 @@ class Feed(object):
             with open(self.feed_file, 'r') as stream:
                 self.logging.debug("Parsing feed file")
                 feed_config = yaml.load(stream)
-        except Exception as e:
-            self.logging.exception("Could not parse feed file {0}".format(self.feed_file))
+        except IOError as e:
+            self.logging.exception("Could not parse feed file {0}: {1}".format(self.feed_file), e)
             return
 
         if "feeds" not in feed_config.keys():
@@ -92,7 +92,8 @@ class Feed(object):
                     feed_parsing_details["remote"])
                 )
                 headers = {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36'
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                    'Chrome/45.0.2454.93 Safari/537.36'
                 }
 
                 response = requests.request(feed_parsing_details["method"], feed_parsing_details["remote"],

@@ -7,6 +7,7 @@ import datetime
 import cif.types
 
 
+# noinspection PyBroadException
 def process(observable=None):
     """Takes an observable and creates new observables from data relating to the specified observable
 
@@ -31,7 +32,6 @@ def process(observable=None):
         # If it's not a valid URL, ignore it.
         return None
 
-
     port = None
     try:
         port = [socket.getservbyname(url.sceheme, 'tcp')]
@@ -53,8 +53,6 @@ def process(observable=None):
         "protocol": observable.protocol,
         "altid": observable.altid,
         "altid_tlp": observable.altid_tlp,
-        "lasttime" : datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%I:%SZ"),
+        "lasttime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%I:%SZ"),
         "reporttime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%I:%SZ")
-    })
-
-    ]
+    })]

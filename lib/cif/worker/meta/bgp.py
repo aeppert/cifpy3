@@ -6,6 +6,7 @@ import dns.reversename
 import dns.resolver
 
 
+# noinspection PyBroadException
 def process(observable=None):
     """Takes an observable and adds meta to it. This meta processor adds BGP data (ASN, Peers)
 
@@ -21,19 +22,19 @@ def process(observable=None):
 
     if observable.otype == "ipv4":
         ip = ipaddress.IPv4Interface(observable.observable).ip
-        asn_dns_hostname = str(dns.reversename.from_address(str(ip))).replace(".in-addr.arpa.", "") + ".origin.asn.cymru.com"
-        peer_dns_hostname = str(dns.reversename.from_address(str(ip))).replace(".in-addr.arpa.", "") + ".peer.asn.cymru.com"
+        asn_lookup = str(dns.reversename.from_address(str(ip))).replace(".in-addr.arpa.", "") + ".origin.asn.cymru.com"
+        peer_lookup = str(dns.reversename.from_address(str(ip))).replace(".in-addr.arpa.", "") + ".peer.asn.cymru.com"
 
     else:
         ip = ipaddress.IPv6Interface(observable.observable).ip
-        asn_dns_hostname = str(dns.reversename.from_address(str(ip))).replace(".ip6.arpa.", "") + ".origin6.asn.cymru.com"
-        peer_dns_hostname = None
+        asn_lookup = str(dns.reversename.from_address(str(ip))).replace(".ip6.arpa.", "") + ".origin6.asn.cymru.com"
+        peer_lookup = None
 
     if ip.is_private:
         return observable
 
     try:
-        for record in dns.resolver.query(asn_dns_hostname, 'TXT').response.answer:
+        for record in dns.resolver.query(asn_lookup, 'TXT').response.answer:
             for item in record:
                 (asn, prefix, cc, rir, date) = [x.strip() for x in str(item).strip('"').split('|')]
                 try:
@@ -54,11 +55,11 @@ def process(observable=None):
         except:
             pass
 
-    if peer_dns_hostname is not None:
+    if peer_lookup is not None:
         peers = []
         peer = None
         try:
-            for record in dns.resolver.query(peer_dns_hostname, 'TXT').response.answer:
+            for record in dns.resolver.query(peer_lookup, 'TXT').response.answer:
                 for item in record:
                     tmp = [x.strip() for x in str(item).strip('"').split('|')]
                     peer = {"asn": tmp[0].split(" ")[0], "cc": tmp[2], "prefix": tmp[1], "rir": tmp[3], "date": tmp[4]}

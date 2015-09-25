@@ -16,10 +16,10 @@ class Feeder(multiprocessing.Process):
     def run(self):
         while True:
             self.logging.info("Starting feeder Run")
-            # Based on the startup options for cif-server, let's get the backend + instantiate the class from that module
+            # Based on the startup options for cif-server, get the backend + instantiate the class from that module
             self.logging.debug("Loading backend: {0}".format(cif.options.storage.lower()))
             backend = getattr(__import__("cif.backends.{0:s}".format(
-                    cif.options.storage.lower()), fromlist=[cif.options.storage.title()]), cif.options.storage.title()
+                cif.options.storage.lower()), fromlist=[cif.options.storage.title()]), cif.options.storage.title()
             )()
 
             self.logging.debug("Connecting to backend: {0}".format(cif.options.storage_uri))
@@ -42,7 +42,7 @@ class Feeder(multiprocessing.Process):
                 try:
                     feed.process()
                 except Exception as e:
-                    self.logging.exception('Exception while Running Feed {0}'.format(feed_file))
+                    self.logging.exception('Exception while Running Feed {0}: {1}'.format(feed_file, e))
 
             self.logging.debug("Disconnecting from backend")
             backend.disconnect()

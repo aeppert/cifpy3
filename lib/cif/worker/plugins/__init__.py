@@ -1,8 +1,8 @@
 """
 CIF.Worker.Plugins
-Plugins take in an observable and may or may not generate additional observables based on data from the origional
+Plugins take in an observable and may or may not generate additional observables based on data from the original
 observable.
-The additional observables should reference the origional observable's ID using the 'related' field.
+The additional observables should reference the original observable's ID using the 'related' field.
 """
 
 __package__ = "cif.worker.plugins"

@@ -57,13 +57,13 @@ group.add_argument('--loglevel', dest='loglevel', nargs='?', choices=['DEBUG', '
 group = parser.add_argument_group('Feed Options')
 group.add_argument('--feed-disable', dest='feed_disable', action="store_true", help='Disable Feeder program')
 group.add_argument('--feed-directory', dest='feed_directory', nargs='?', type=str,
-                    default=os.path.join(cif.ETCDIR, 'feeds'), help='Read feed configurations from this directory')
+                   default=os.path.join(cif.ETCDIR, 'feeds'), help='Read feed configurations from this directory')
 group.add_argument('--feed-interval', dest='feed_interval', nargs='?', type=int, default=3600,
                    help='Feed Fetching interval (in seconds)')
 group.add_argument('--http-proxy', dest='feed_http_proxy', nargs='?', type=str,
-                    help='HTTP Proxy for accessing feeds')
+                   help='HTTP Proxy for accessing feeds')
 group.add_argument('--https-proxy', dest='feed_https_proxy', nargs='?', type=str,
-                    help='HTTPS Proxy for accessing feeds')
+                   help='HTTPS Proxy for accessing feeds')
 
 group = parser.add_argument_group('Notification Options')
 group.add_argument('--notify', action="store_true", help='enable notification')
@@ -105,12 +105,14 @@ api = None
 feeder = None
 workers = {}
 
+
 # Hook into SIGINT
-def sigint_handler(signal, frame):
-    logger.warning("Received SIGINT. Exiting.")
+def sigint_handler(signum, frame):
+    logger.warning("Received Signal #{0}. Exiting.".format(signum))
+    # noinspection PyBroadException
     try:
         logger.info("Killing Workers")
-        for i in range(1, cif.options.workers+1):
+        for worker in range(1, cif.options.workers+1):
             cif.worker.tasks.put(None)
         logger.info("Killing api")
         api.terminate()
@@ -119,6 +121,7 @@ def sigint_handler(signal, frame):
             feeder.terminate()
     except:
         pass
+    del frame
     sys.exit(0)
 signal.signal(signal.SIGINT, sigint_handler)
 
@@ -153,4 +156,3 @@ while True:
     logger.debug("Monitoring Loop: Sleeping")
 
     time.sleep(5)
-

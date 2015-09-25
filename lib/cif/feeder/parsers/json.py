@@ -34,7 +34,7 @@ class Json(Parser):
                         self.parsing = False
                         break
                     self.total_objects += 1
-                except Exception:
+                except StopIteration:
                     self.parsing = False
                     break
 
@@ -45,7 +45,7 @@ class Json(Parser):
                 if line is None:
                     self.parsing = False
                     break
-            except Exception:
+            except StopIteration:
                 self.parsing = False
                 break
 

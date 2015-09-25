@@ -7,10 +7,11 @@ import dns.resolver
 import cif
 
 
+# noinspection PyBroadException
 def process(observable=None):
     """Takes an observable and creates new observables from data relating to the specified observable
 
-    :param cif.types.Observable observable: Observable to source data from
+    :param cif.types.Address observable: Observable to source data from
     :return: A list of new observables related to the incoming one
     :rtype: cif.types.Observable
     """

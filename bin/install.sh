@@ -31,7 +31,7 @@ os_type
 if [[ OS_DEBIAN -gt 0 ]]; then
     sudo apt-get -y install git python3 python3-requests python3-yaml python3-dnspython python3-pip python3-dateutil \
     elasticsearch
-    sudo pip3 install pygeoip feedparser
+    sudo pip3 install pygeoip feedparser tabulate
     cat /etc/default/elasticsearch | sed -e 's/#START_DAEMON/START_DAEMON/' > /etc/default/elasticsearch.new
     mv /etc/default/elasticsearch.new /etc/default/elasticsearch
     /etc/init.d/elasticsearch start

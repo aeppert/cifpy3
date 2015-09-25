@@ -12,7 +12,7 @@ class Rss(Parser):
         self.rss_entries = len(self.rss.entries)
         self.position = 0
         self.parsing_details['values'] = []
-        for element,pattern in self.parsing_details['pattern'].items():
+        for element, pattern in self.parsing_details['pattern'].items():
             if not isinstance(pattern['values'], list):
                 pattern['values'] = [pattern['values']]
             for value in pattern['values']:
@@ -51,8 +51,11 @@ class Rss(Parser):
                     pattern['values'] = [pattern['values']]
                 match = re.search(pattern['pattern'], entry[element])
                 if match is None or match.lastindex != len(pattern["values"]):
-                    self.logging.warning("No Match - feed: {4}; element {0}; contents: '{1}'; match: '{2}'; values: {3}".format(
-                        element, entry[element], repr(match), len(pattern["values"]), self.parsing_details['feed_name'])
+                    self.logging.warning(
+                        "No Match - feed: {4}; element {0}; contents: '{1}'; match: '{2}'; values: {3}".format(
+                            element, entry[element], repr(match), len(pattern["values"]),
+                            self.parsing_details['feed_name']
+                        )
                     )
                     gotonext = True
                     continue

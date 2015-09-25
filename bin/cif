@@ -38,7 +38,8 @@ group = parser.add_argument_group('Output Options')
 group.add_argument('--format', dest='format', choices=['cli', 'json', 'xml', 'csv', 'custom', 'single'], default="cli",
                    help="Output in this format. Custom can be defined using --format-string 'column,column2,...', "
                         "single will use the first column specified in 'select', by default it is 'observable'")
-group.add_argument('--select', dest='select', help='Comma separated list of columns to display.', default='timestamp,otype,observable,tags')
+group.add_argument('--select', dest='select', help='Comma separated list of columns to display.',
+                   default='timestamp,otype,observable,tags')
 group.add_argument('--format-string', dest='format_string',
                    help="Python style string for formatting. Requires --select. Example: '{0},{1},{2}'")
 group.add_argument('--write', dest='write', help='Filename to write output to instead of stdout')
@@ -51,7 +52,7 @@ config_path = os.path.expanduser(options['config'])
 if os.path.exists(os.path.expanduser(options['config'])):
     with open(config_path, 'r') as stream:
         config = yaml.load(stream)
-    for key,value in config.items():
+    for key, value in config.items():
         if key not in options and options[key] is not None:
             options[key] = value
 
@@ -74,7 +75,9 @@ results = []
 
 while True:
     try:
-        response = requests.get('{0}/observables?start={1}&count={2}&{3}'.format(options['url'], options['start'], options['chunk_size'], options['query']), headers=headers, stream=True)
+        response = requests.get('{0}/observables?start={1}&count={2}&{3}'.format(
+            options['url'], options['start'], options['chunk_size'], options['query']), headers=headers, stream=True
+        )
     except requests.exceptions.ConnectionError as e:
         sys.stderr.write("[ERROR] Could not make request to CIF Server: {0}\n".format(e))
         sys.exit(1)
@@ -177,7 +180,9 @@ elif options['format'] == "custom":
         try:
             output_handle.write(options['format_string'].format(*row)+"\n")
         except Exception as e:
-            raise RuntimeError("Could not use custom formatting. column count: {0}; row count: {1}.".format(len(columns), len(row))) from e
+            raise RuntimeError("Could not use custom formatting. column count: {0}; row count: {1}.".format(
+                len(columns), len(row))
+            ) from e
 
 elif options['format'] == "single":
     for result in results:

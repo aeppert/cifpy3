@@ -230,6 +230,7 @@ class Observable(Base):
                     pass
         else:
             if self.observable is not None:
+                # noinspection PyTypeChecker
                 if cif.types.is_ipv4(self.observable):
                     self.otype = 'ipv4'
                 elif cif.types.is_fqdn(self.observable):

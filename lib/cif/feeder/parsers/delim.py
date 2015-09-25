@@ -29,7 +29,6 @@ class Delim(Parser):
                 self.file.readline()
                 self.total_objects += 1
 
-
         objects = 0
         while objects < max_objects:
             if self.file.tell() >= self.file_size:
@@ -49,8 +48,11 @@ class Delim(Parser):
             if len(match) != self.valuecount:
                 if line[0].startswith('#') or line[0].startswith(';') or len(line) == 0:
                     continue
-                self.logging.warning("No Match - feed: {4}; position {0}; contents: '{1}'; match-count: {3}; values: {2}".format(
-                    self.file.tell(), match, len(self.parsing_details["values"]), len(match), self.parsing_details['feed_name'])
+                self.logging.warning(
+                    "No Match - feed: {4}; position {0}; contents: '{1}'; match-count: {3}; values: {2}".format(
+                        self.file.tell(), match, len(self.parsing_details["values"]), len(match),
+                        self.parsing_details['feed_name']
+                    )
                 )
                 continue
 

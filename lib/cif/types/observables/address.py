@@ -98,7 +98,7 @@ class Address(Observable):
     def application(self, value):
         if value is not None and self.portlist is None:
             try:
-                self.portlist = [socket.getservbyname()]
+                self.portlist = [socket.getservbyname(value)]
             except:
                 pass
         self._application = value

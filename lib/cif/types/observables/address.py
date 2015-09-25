@@ -1,5 +1,7 @@
 __author__ = 'James DeVincentis <james.d@hexhost.net>'
 
+import socket
+
 from ..observable import Observable
 from ..basics import *
 
@@ -87,3 +89,16 @@ class Address(Observable):
     @rtype.setter
     def rtype(self, value):
         self._rtype = value
+
+    @property
+    def application(self):
+        return self._application
+
+    @application.setter
+    def application(self, value):
+        if value is not None and self.portlist is None:
+            try:
+                self.portlist = [socket.getservbyname()]
+            except:
+                pass
+        self._application = value

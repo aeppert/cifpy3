@@ -429,7 +429,7 @@ class Elasticsearch(Backend):
                                        "type": "string"
                                    },
                                    "portlist": {
-                                       "type": "string"
+                                       "type": "integer"
                                    },
                                    "latitude": {
                                        "type": "double"

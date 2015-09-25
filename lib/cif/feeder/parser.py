@@ -87,10 +87,10 @@ class Parser(object):
 
     def create_observable_from_meta(self, meta):
         # Copy the meta to a new dictionary
-        tmp = self.basemeta.copy()
+        tmp = self.basemeta.deepcopy()
 
         # Append our parsed meta to the base meta
-        tmp.update(meta)
+        tmp.update(meta.deepcopy())
 
         # Loop through and look for subsitutions
         for key,value in tmp.items():

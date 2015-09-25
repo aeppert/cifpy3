@@ -110,8 +110,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     del args['start']
 
                 if "count" in args:
-                    if isinstance(args["start"], list):
-                        count = int(args["start"][-1])
+                    if isinstance(args["count"], list):
+                        count = int(args["count"][-1])
                     else:
                         count = int(args["count"])
                     del args['count']

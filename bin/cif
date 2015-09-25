@@ -37,7 +37,7 @@ group = parser.add_argument_group('Output Options')
 group.add_argument('--format', dest='format', choices=['cli', 'json', 'xml', 'csv', 'custom', 'single'], default="cli",
                    help="Output in this format. Custom can be defined using --format-string 'column,column2,...', "
                         "single will use the first column specified in 'select', by default it is 'observable'")
-group.add_argument('--select', dest='select', help='Comma separated list of columns to display.', default='lasttime,otype,observable,tags')
+group.add_argument('--select', dest='select', help='Comma separated list of columns to display.', default='timestamp,otype,observable,tags')
 group.add_argument('--format-string', dest='format_string',
                    help="Python style string for formatting. Requires --select. Example: '{0},{1},{2}'")
 group.add_argument('--write', dest='write', help='Filename to write output to instead of stdout')
@@ -130,6 +130,7 @@ elif options['format'] == "xml":
 elif options['format'] == "csv":
     headers = options['select'].split(',')
     writer = csv.writer(output_handle)
+    writer.writerow(headers)
     for result in results:
         row = []
         for header in headers:

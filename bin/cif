@@ -7,10 +7,13 @@ __author__ = 'James DeVincentis <james.d@hexhost.net>'
 import argparse
 import os
 import sys
+import json
+import csv
+
 import requests
 import requests.exceptions
-import json
 import yaml
+import tabulate
 
 parser = argparse.ArgumentParser(description='Collective Intelligence Framework Client',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -53,8 +56,6 @@ if os.path.exists(os.path.expanduser(options['config'])):
 
 headers = {}
 
-
-
 if options['start'] is None:
     options['start'] = 0
 
@@ -69,8 +70,6 @@ if options["token"] is not None:
     headers['Authorization'] = options["token"]
 
 results = []
-
-
 
 while True:
     try:
@@ -106,12 +105,11 @@ while True:
         raise RuntimeError("Invalid Query: {0}".format(response.text))
 
 if options['write'] is not None:
-    output_handle = open(options['write'], 'wt')
+    output_handle = open(options['write'], 'wt', newline='')
 else:
     output_handle = sys.stdout
 
 if options['format'] == "cli":
-    import tabulate
     headers = options['select'].split(',')
     rows = []
     for result in results:
@@ -130,7 +128,18 @@ elif options['format'] == "json":
 elif options['format'] == "xml":
     pass
 elif options['format'] == "csv":
-    pass
+    headers = options['select'].split(',')
+    writer = csv.writer(output_handle)
+    for result in results:
+        row = []
+        for header in headers:
+            if header in result:
+                if isinstance(result[header], list):
+                    result[header] = ', '.join(result[header])
+                row.append(result[header])
+            else:
+                row.append('')
+        writer.writerow(row)
 elif options['format'] == "custom":
     columns = options['select'].split(',')
     for result in results:

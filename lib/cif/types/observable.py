@@ -2,6 +2,7 @@ __author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 import datetime
 import math
+import re
 
 import dateutil.parser
 
@@ -91,7 +92,7 @@ class Observable(Base):
 
     @timestamp.setter
     def timestamp(self, value):
-        if value is not None:
+        if value is not None and cif.STANDARD_TIME_FORMAT.match(value) is None:
             value = dateutil.parser.parse(value).strftime("%Y-%m-%dT%H:%I:%SZ")
         self._timestamp = value
 
@@ -254,7 +255,7 @@ class Observable(Base):
 
     @reporttime.setter
     def reporttime(self, value):
-        if value is not None:
+        if value is not None and cif.STANDARD_TIME_FORMAT.match(value) is None:
             value = dateutil.parser.parse(value).strftime("%Y-%m-%dT%H:%I:%SZ")
         self._reporttime = value
 
@@ -264,7 +265,7 @@ class Observable(Base):
 
     @firsttime.setter
     def firsttime(self, value):
-        if value is not None:
+        if value is not None and cif.STANDARD_TIME_FORMAT.match(value) is None:
             value = dateutil.parser.parse(value).strftime("%Y-%m-%dT%H:%I:%SZ")
         self._firsttime = value
 
@@ -274,6 +275,6 @@ class Observable(Base):
 
     @lasttime.setter
     def lasttime(self, value):
-        if value is not None:
+        if value is not None and cif.STANDARD_TIME_FORMAT.match(value) is None:
             value = dateutil.parser.parse(value).strftime("%Y-%m-%dT%H:%I:%SZ")
         self._lasttime = value

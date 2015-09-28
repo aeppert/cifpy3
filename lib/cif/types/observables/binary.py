@@ -20,7 +20,7 @@ class Binary(Observable):
 
     @hash.setter
     def hash(self, value):
-        if value is None and self.observable is not None:
+        if self._validation and value is None and self.observable is not None:
             self.htype = 'sha256'
             tmp = hashlib.sha256()
             tmp.update(self.observable)
@@ -33,6 +33,6 @@ class Binary(Observable):
 
     @htype.setter
     def htype(self, value):
-        if value is None and self.hash is not None:
+        if self._validation and value is None and self.hash is not None:
             value = hash_type(value)
         self._htype = value

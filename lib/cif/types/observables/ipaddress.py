@@ -59,7 +59,7 @@ class Ipaddress(Address):
 
     @peers.setter
     def peers(self, value):
-        if value is not None and not isinstance(value, list):
+        if self._validation and value is not None and not isinstance(value, list):
             raise TypeError("Peers must be a list")
         self._peers = value
 
@@ -77,7 +77,7 @@ class Ipaddress(Address):
 
     @citycode.setter
     def citycode(self, value):
-        if value is not None:
+        if self._validation and value is not None:
             value = value.upper()
         self._citycode = value
 

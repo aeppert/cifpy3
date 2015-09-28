@@ -14,7 +14,7 @@ class Ipv6(Ipaddress):
 
     @mask.setter
     def mask(self, value):
-        if value is not None:
+        if self._validation and value is not None:
             if not isinstance(value, int):
                 try:
                     value = int(value)

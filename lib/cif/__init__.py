@@ -1,6 +1,5 @@
 __author__ = 'James DeVincentis <james.d@hexhost.net>'
 
-import re
 
 BINDIR = None
 APPDIR = None
@@ -26,4 +25,3 @@ CONFIDENCE_DEFAULT = 75
 
 proxies = {}
 
-STANDARD_TIME_FORMAT = re.compile('^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$')

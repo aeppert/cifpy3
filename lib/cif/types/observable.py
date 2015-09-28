@@ -36,6 +36,10 @@ class Observable(Base):
         self._additional_data = None
         self._call_super = True
         self._timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%I:%SZ")
+        self._validation = True
+
+        if "validation" in kwargs:
+            self._validation = kwargs['validation']
 
         # Handle populating attributes from a call to __init__, set otype first
         for dictionary in initial_data:
@@ -45,17 +49,7 @@ class Observable(Base):
             for key in dictionary:
                 if key == "otype":
                     continue
-
                 setattr(self, key, dictionary[key])
-
-        if "otype" in kwargs:
-            setattr(self, "otype", kwargs["otype"])
-
-        for key in kwargs:
-            if key == "otype":
-                    continue
-
-            setattr(self, key, kwargs[key])
 
     def _degrade_confidence(self, c=None):
         """Degrades observable confidence. Used by workers when creating new observables based on others
@@ -92,7 +86,7 @@ class Observable(Base):
 
     @timestamp.setter
     def timestamp(self, value):
-        if value is not None and cif.STANDARD_TIME_FORMAT.match(value) is None:
+        if value is not None and self._validation:
             value = dateutil.parser.parse(value).strftime("%Y-%m-%dT%H:%I:%SZ")
         self._timestamp = value
 
@@ -102,7 +96,7 @@ class Observable(Base):
 
     @lang.setter
     def lang(self, value):
-        if value is not None:
+        if value is not None and self._validation:
             value = cif.types.lang(value)
         self._lang = value
 
@@ -120,7 +114,7 @@ class Observable(Base):
 
     @provider.setter
     def provider(self, value):
-        if isinstance(value, str):
+        if self._validation and isinstance(value, str) :
             value = value.lower()
         self._provider = value
 
@@ -130,7 +124,7 @@ class Observable(Base):
 
     @group.setter
     def group(self, value):
-        if not isinstance(value, list):
+        if self._validation and not isinstance(value, list):
             raise TypeError("Group must be a list")
         self._group = value
 
@@ -140,7 +134,8 @@ class Observable(Base):
 
     @tlp.setter
     def tlp(self, value):
-        value = cif.types.tlp(value)
+        if self._validation:
+            value = cif.types.tlp(value)
         self._tlp = value
 
     @property
@@ -149,7 +144,8 @@ class Observable(Base):
 
     @confidence.setter
     def confidence(self, value):
-        value = cif.types.confidence(value)
+        if self._validation:
+            value = cif.types.confidence(value)
         self._confidence = value
 
     @property
@@ -158,7 +154,8 @@ class Observable(Base):
 
     @tags.setter
     def tags(self, value):
-        value = cif.types.tags(value)
+        if self._validation:
+            value = cif.types.tags(value)
         self._tags = list(set(value))
 
     @property
@@ -191,23 +188,24 @@ class Observable(Base):
 
     @observable.setter
     def observable(self, value):
-        if isinstance(value, str):
-            value = value.lower()
-        if self.otype is None:
-            if cif.types.is_ipv4(value):
-                self.otype = 'ipv4'
-            elif cif.types.is_fqdn(value):
-                self.otype = 'fqdn'
-            elif cif.types.is_url(value):
-                self.otype = 'url'
-            elif cif.types.is_email(value):
-                self.otype = 'email'
-            elif cif.types.is_hash(value):
-                self.otype = 'hash'
-            elif cif.types.is_ipv6(value):
-                self.otype = 'ipv6'
-            elif cif.types.is_binary(value):
-                self.otype = 'binary'
+        if self._validation:
+            if isinstance(value, str):
+                value = value.lower()
+            if self.otype is None:
+                if cif.types.is_ipv4(value):
+                    self.otype = 'ipv4'
+                elif cif.types.is_fqdn(value):
+                    self.otype = 'fqdn'
+                elif cif.types.is_url(value):
+                    self.otype = 'url'
+                elif cif.types.is_email(value):
+                    self.otype = 'email'
+                elif cif.types.is_hash(value):
+                    self.otype = 'hash'
+                elif cif.types.is_ipv6(value):
+                    self.otype = 'ipv6'
+                elif cif.types.is_binary(value):
+                    self.otype = 'binary'
         self._observable = value
 
     @property
@@ -230,7 +228,7 @@ class Observable(Base):
                 except ImportError:
                     pass
         else:
-            if self.observable is not None:
+            if self._validation and self.observable is not None:
                 # noinspection PyTypeChecker
                 if cif.types.is_ipv4(self.observable):
                     self.otype = 'ipv4'
@@ -255,7 +253,7 @@ class Observable(Base):
 
     @reporttime.setter
     def reporttime(self, value):
-        if value is not None and cif.STANDARD_TIME_FORMAT.match(value) is None:
+        if self._validation and value is not None:
             value = dateutil.parser.parse(value).strftime("%Y-%m-%dT%H:%I:%SZ")
         self._reporttime = value
 
@@ -265,7 +263,7 @@ class Observable(Base):
 
     @firsttime.setter
     def firsttime(self, value):
-        if value is not None and cif.STANDARD_TIME_FORMAT.match(value) is None:
+        if self._validation and value is not None:
             value = dateutil.parser.parse(value).strftime("%Y-%m-%dT%H:%I:%SZ")
         self._firsttime = value
 
@@ -275,6 +273,6 @@ class Observable(Base):
 
     @lasttime.setter
     def lasttime(self, value):
-        if value is not None and cif.STANDARD_TIME_FORMAT.match(value) is None:
+        if self._validation and value is not None:
             value = dateutil.parser.parse(value).strftime("%Y-%m-%dT%H:%I:%SZ")
         self._lasttime = value

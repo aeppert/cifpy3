@@ -23,7 +23,7 @@ class Address(Observable):
 
     @portlist.setter
     def portlist(self, value):
-        if value is not None:
+        if self._validation and value is not None:
             if not isinstance(value, list):
                 if isinstance(value, str):
                     try:
@@ -60,7 +60,7 @@ class Address(Observable):
 
     @protocol.setter
     def protocol(self, value):
-        if value is not None:
+        if self._validation and value is not None:
             value = protocol(value)
         self._protocol = value
 
@@ -70,7 +70,7 @@ class Address(Observable):
 
     @cc.setter
     def cc(self, value):
-        if value is not None:
+        if self._validation and value is not None:
             value = country(value)
         self._cc = value
 
@@ -96,7 +96,7 @@ class Address(Observable):
 
     @application.setter
     def application(self, value):
-        if value is not None and self.portlist is None:
+        if self._validation and value is not None and self.portlist is None:
             # noinspection PyBroadException
             try:
                 self.portlist = [socket.getservbyname(value)]

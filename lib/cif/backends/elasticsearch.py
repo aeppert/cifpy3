@@ -263,7 +263,7 @@ class Elasticsearch(Backend):
                 params_to_delete.append(param)
         for param in params_to_delete:
             del params[param]
-        return obj(**params)
+        return obj(params, validation=False)
 
     def _request(self, path='/', body=None, method="GET"):
         """Send a request to the ElasticSearch API

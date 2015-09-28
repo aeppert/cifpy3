@@ -18,13 +18,15 @@ class Token(Base):
         self._admin = 0
         self._revoked = 0
         self._token = self._generate_random_hash(32)
+        self._validation = True
+
+        if "validation" in kwargs:
+            self._validation = False
 
         # Handle populating attributes from a call to __init__
         for dictionary in initial_data:
             for key in dictionary:
                 setattr(self, key, dictionary[key])
-        for key in kwargs:
-            setattr(self, key, kwargs[key])
 
     @property
     def acl(self):

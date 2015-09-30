@@ -5,9 +5,8 @@ After=network.target
 [Service]
 EnvironmentFile=-/etc/default/cif-server
 ExecStart=/opt/cifpy3/bin/cif-server $DAEMON_OPTS
-KillMode=process
 Restart=on-failure
+TimeoutStopSec=3
 
 [Install]
 WantedBy=multi-user.target
-Alias=cif-server.service

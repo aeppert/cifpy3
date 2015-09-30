@@ -54,7 +54,7 @@ os_type
 if [[ OS_DEBIAN -gt 0 ]]; then
     # Test for minimal version
     VERSION=$(cat /etc/debian_version)
-    if [[ "${VERSION:0:1]" != "8" ]]; then
+    if [[ "${VERSION:0:1}" != "8" ]]; then
         echo "[ERROR] Minimal Debian version of 8 (jessie) required."
         exit 1
     fi

@@ -83,7 +83,7 @@ if [[ OS_DEBIAN -gt 0 ]]; then
     /etc/init.d/elasticsearch start
 
     # Create CIF user
-    useradd -r -d /opt/cifpy3 -M cif-server
+    useradd -r -d /opt/cifpy3 -M cif
 
     # clone cifpy3 to /opt/
     echo "Cloning CIFpy3 to /opt/cifpy3"

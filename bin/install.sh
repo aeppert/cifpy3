@@ -63,7 +63,7 @@ if [[ OS_DEBIAN -gt 0 ]]; then
     apt-get -qq -y install git python3 python3-requests python3-yaml python3-dnspython python3-pip python3-dateutil \
     elasticsearch
     if [[ $? -ne 0 ]]; then
-        echo "[ERROR] Cann  ot Install dependencies."
+        echo "[ERROR] Cannot Apt Install dependencies."
         exit
     fi
     echo "Done"
@@ -72,7 +72,7 @@ if [[ OS_DEBIAN -gt 0 ]]; then
     echo -n "Installing Pip3 Dependencies..."
     pip3 -q install pygeoip feedparser tabulate
     if [[ $? -ne 0 ]]; then
-        echo "[ERROR] Cannot Install dependencies."
+        echo "[ERROR] Cannot Pip Install dependencies."
         exit
     fi
     echo "Done"

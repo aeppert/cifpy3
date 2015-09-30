@@ -80,7 +80,8 @@ if [[ OS_DEBIAN -gt 0 ]]; then
     # Modify elasticsearch to startup automatically
     cat /etc/default/elasticsearch | sed -e 's/#START_DAEMON/START_DAEMON/' > /etc/default/elasticsearch.new
     mv /etc/default/elasticsearch.new /etc/default/elasticsearch
-    /etc/init.d/elasticsearch start
+    systemctl stop elasticsearch
+    systemctl start elasticsearch
 
     # Create CIF user
     useradd -r -d /opt/cifpy3 -M cif
@@ -95,16 +96,15 @@ if [[ OS_DEBIAN -gt 0 ]]; then
 
     chown cif:cif -Rf /opt/cifpy3
 
-    # Copy init scripts
+    # Copy systemd scripts
     cp /opt/cifpy3/scripts/debian/cif-server.systemd /etc/systemd/system/cif-server.service
     cp /opt/cifpy3/scripts/debian/cif-server.default /etc/default/cif-server
-    cp /opt/cifpy3/scripts/debian/cif-server.init /etc/init.d/cif-server
-    chmod +x /etc/init.d/cif-server
     
-    # Run the cif installation
+    # Run the cif initial install
     /opt/cifpy3/bin/cif-utility -r
 
     # Start it up, need to detect which version
-    service cif-server start
+    systemctl enable cif-server
+    systemctl start cif-server
 
 fi

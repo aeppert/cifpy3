@@ -100,6 +100,9 @@ if [[ OS_DEBIAN -gt 0 ]]; then
     cp /opt/cifpy3/scripts/debian/cif-server.default /etc/default/cif-server
     cp /opt/cifpy3/scripts/debian/cif-server.init /etc/init.d/cif-server
     chmod +x /etc/init.d/cif-server
+    
+    # Run the cif installation
+    /opt/cifpy3/bin/cif-utility -r
 
     # Start it up, need to detect which version
     service cif-server start

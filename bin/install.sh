@@ -118,7 +118,7 @@ if [[ OS_DEBIAN -gt 0 ]]; then
     TOKEN=$(/opt/cifpy3/bin/cif-utility -r)
     
     # Write the token out to ~/.cif
-    echo "token: ${TOKEN}" > ~/.cif
+    echo "${TOKEN}" > ~/.cif
     
     # Add CIF to everyone's $PATH (also add it to running shell)
     echo 'PATH="${PATH}:/opt/cifpy3/bin/"' > /etc/profile.d/cif.sh

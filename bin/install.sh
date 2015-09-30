@@ -20,7 +20,7 @@ function os_type
                 OS_REDHAT=1
             fi
 
-            if [[ -f /etc/debian-version ]]; then
+            if [[ -f /etc/debian_version ]]; then
                 echo "[OKAY] Detected Debian distribution"
                 OS_DEBIAN=1
             fi

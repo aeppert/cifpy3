@@ -51,8 +51,13 @@ function os_type
 os_type
 
 # Install Debian Dependencies
-if [[ OS_DEBIAN -gt 0 ]] || [[ OS_UBUNTU -gt 0 ]]; then
-
+if [[ OS_DEBIAN -gt 0 ]]; then
+    # Test for minimal version
+    VERSION=$(cat /etc/debian_version)
+    if [[ "${VERSION:0:1]" != "8" ]]; then
+        echo "[ERROR] Minimal Debian version of 8 (jessie) required."
+        exit 1
+    fi
     # Apt Dependencies
     echo -n "Installing Apt Dependencies..."
     apt-get -qq -y install git python3 python3-requests python3-yaml python3-dnspython python3-pip python3-dateutil \

@@ -3,6 +3,7 @@
 # Operating System tests
 OS_LINUX=0
 OS_DEBIAN=0
+OS_UBUNTU=0
 OS_REDHAT=0
 OS_MAC=0
 
@@ -11,11 +12,27 @@ function os_type
 {
     case `uname` in
         Linux )
+            echo "[OKAY] Detected Linux Operating System"
             OS_LINUX=1
-            which -s yum && { OS_REDHAT=1; return; }
-            which -s apt-get && { OS_DEBIAN=1; return; }
+
+            if [[ -f /etc/redhat-release ]]; then
+                echo "[OKAY] Detected RedHat/CentOS distribution"
+                OS_REDHAT=1
+            fi
+
+            if [[ -f /etc/debian-version ]]; then
+                echo "[OKAY] Detected Debian distribution"
+                OS_DEBIAN=1
+            fi
+
+            if [[ -f /etc/lsb-release ]]; then
+                echo "[OKAY] Detected Ubuntu distribution"
+                OS_UBUNTU=1
+            fi
+
             ;;
         Darwin )
+            echo "[ERROR] Detected Mac Operating System. Currently Unsupported. Support Pending"
             OS_MAC=1
             ;;
         * )
@@ -28,7 +45,7 @@ function os_type
 os_type
 
 # Install Debian Dependencies
-if [[ OS_DEBIAN -gt 0 ]]; then
+if [[ OS_DEBIAN -gt 0 ]] || [[ OS_UBUNTU -gt 0 ]]; then
 
     # Apt Dependencies
     echo -n "Installing Apt Dependencies..."

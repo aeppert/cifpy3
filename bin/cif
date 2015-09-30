@@ -21,7 +21,7 @@ parser = argparse.ArgumentParser(description='Collective Intelligence Framework 
 parser.add_argument('--url', dest='url', nargs='?', type=str, default='http://127.0.0.1:8080',
                     help='CIF REST API URL for connections')
 parser.add_argument('query', type=str, help="HTTP query_string style query.")
-parser.add_argument('--config', type=str, help="Configuration file path.", default="~/.cif.yaml")
+parser.add_argument('--config', type=str, help="Configuration file path.", default="~/.cif")
 parser.add_argument('--token', type=str, help="Token used for authentication.")
 group = parser.add_argument_group('Query Options')
 group.add_argument('--start', type=int, help="Start at record")

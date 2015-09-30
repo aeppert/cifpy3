@@ -77,7 +77,7 @@ CIFpy3 installer will automatically add /opt/CIFpy3/bin/ to the global $PATH.
 
 ```
 #!/bin/bash
-wget https://raw.githubusercontent.com/jmdevince/CIFpy3/master/install.sh
+wget -O install.sh https://raw.githubusercontent.com/jmdevince/cifpy3/master/bin/install.sh
 chmod +x install.sh
 ./install.sh /opt/CIFpy3/
 ```

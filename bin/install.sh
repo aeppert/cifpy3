@@ -29,12 +29,51 @@ os_type
 
 # Install Debian Dependencies
 if [[ OS_DEBIAN -gt 0 ]]; then
-    sudo apt-get -y install git python3 python3-requests python3-yaml python3-dnspython python3-pip python3-dateutil \
+
+    # Apt Dependencies
+    echo -n "Installing Apt Dependencies..."
+    sudo apt-get -qq -y install git python3 python3-requests python3-yaml python3-dnspython python3-pip python3-dateutil \
     elasticsearch
-    sudo pip3 install pygeoip feedparser tabulate
-    cat /etc/default/elasticsearch | sed -e 's/#START_DAEMON/START_DAEMON/' > /etc/default/elasticsearch.new
-    mv /etc/default/elasticsearch.new /etc/default/elasticsearch
-    /etc/init.d/elasticsearch start
+    if [[ $? -ne 0 ]]; then
+        echo "[ERROR] Cann  ot Install dependencies."
+        exit
+    fi
+    echo "Done"
+
+    # Pip dependencies
+    echo -n "Installing Pip3 Dependencies..."
+    sudo pip3 -q install pygeoip feedparser tabulate
+    if [[ $? -ne 0 ]]; then
+        echo "[ERROR] Cannot Install dependencies."
+        exit
+    fi
+    echo "Done"
+
+    # Modify elasticsearch to startup automatically
+    sudo cat /etc/default/elasticsearch | sed -e 's/#START_DAEMON/START_DAEMON/' > /etc/default/elasticsearch.new
+    sudo mv /etc/default/elasticsearch.new /etc/default/elasticsearch
+    sudo /etc/init.d/elasticsearch start
+
+    # Create CIF user
+    useradd -r -d /opt/cifpy3 -M cif-server
+
+    # clone cifpy3 to /opt/
+    echo "Cloning CIFpy3 to /opt/cifpy3"
+    git clone https://github.com/jmdevince/cifpy3.git /opt/cifpy3
+    if [[ $? -ne 0 ]]; then
+        echo "[ERRROR] Could not clone cifpy3"
+        exit
+    fi
+
+    chown cif:cif -Rf /opt/cifpy3
+
+    # Copy init scripts
+    cp /opt/cifpy3/scripts/debian/cif-server.systemd /etc/systemd/system/cif-server.service
+    cp /opt/cifpy3/scripts/debian/cif-server.default /etc/default/cif-server
+    cp /opt/cifpy3/scripts/debian/cif-server.init /etc/init.d/cif-server
+    chmod +x /etc/init.d/cif-server
+
+    # Start it up, need to detect which version
+    service cif-server start
+
 fi
-
-

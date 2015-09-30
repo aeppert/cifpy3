@@ -29,11 +29,13 @@ function os_type
             if [[ -f /etc/debian_version ]]; then
                 echo "[OKAY] Detected Debian distribution"
                 OS_DEBIAN=1
+                OS_UBUNTU=0
             fi
 
             if [[ -f /etc/lsb-release ]]; then
                 echo "[OKAY] Detected Ubuntu distribution"
                 OS_UBUNTU=1
+                OS_DEBIAN=0
             fi
 
             ;;

@@ -115,10 +115,21 @@ if [[ OS_DEBIAN -gt 0 ]]; then
     cp /opt/cifpy3/scripts/debian/cif-server.default /etc/default/cif-server
     
     # Run the cif initial install
-    /opt/cifpy3/bin/cif-utility -r
+    TOKEN=$(/opt/cifpy3/bin/cif-utility -r)
+    
+    # Write the token out to ~/.cif
+    echo "token: ${TOKEN}" > ~/.cif
+    
+    # Add CIF to everyone's $PATH (also add it to running shell)
+    echo 'PATH="${PATH}:/opt/cifpy3/bin/"' > /etc/profile.d/cif.sh
+    . /etc/profile.d/cif.sh
 
     # Start it up, need to detect which version
     systemctl enable cif-server
     systemctl start cif-server
+    
+    # Print information
+    echo "[OKAY] CIF has been installed. You can now use the 'cif' command."
+    echo "[OKAY] Your ADMIN API token is ${TOKEN}. It has also been written to ~/.cif"
 
 fi

@@ -9,7 +9,7 @@ There are two main components: the server, and the client. The server is respons
 
 Features
 ----------
-* Powered by Python 3.x
+* Powered by Python 3.4+
 * Performance
   * Ingest ~70-80 Observables per second per CPU core
     * This equates to ingesting about 1M Observables in ~30 minutes using 8vCPUs
@@ -69,17 +69,15 @@ Prerequisites
 
 Installation
 -------------
-By default CIFpy3 gets installed to /opt/CIFpy3/. You can change this by specifying the installdir as a parameter to install.sh.
+By default CIFpy3 gets installed to /opt/CIFpy3/.
 
-CIFpy3 installer will automatically add /opt/CIFpy3/bin/ to the global $PATH.
-
-> **note**: be sure to save the admin token generated during installation. You need it if you want to add any additional users or use CIFpy3 with authentication enabled.
+> **note**: be sure to save the admin token generated during installation. You need it if you want to add any additional users or use CIFpy3 with authentication enabled or even use the API.
 
 ```
 #!/bin/bash
 wget --no-check-certificate -O install.sh https://raw.githubusercontent.com/jmdevince/cifpy3/master/bin/install.sh
 chmod +x install.sh
-./install.sh /opt/CIFpy3/
+./install.sh
 ```
 
 CIFpy3 will automatically install and configure a token for the cli & user that installs CIFpy3. This is the admin token. Any token flagged as an 'admin' is capable of deleting other admins.

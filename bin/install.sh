@@ -83,6 +83,20 @@ if [[ OS_DEBIAN -gt 0 ]]; then
     systemctl stop elasticsearch
     systemctl start elasticsearch
 
+    # Wait for a little bit for elastic search to start up
+    ES_STARTED=0
+    for i in {1..15}; do
+        if [[ $(netstat -nplt | grep -c 9200) -gt 0]]; then
+            ES_STARTED=1
+            break
+        fi
+        sleep 1
+    done
+    
+    if [[ $ES_STARTED -lt 1 ]]; then
+        echo "[ERROR] ElasticSearch should have started by now. Fix elasticsearch then re-run this script"
+    fi
+
     # Create CIF user
     useradd -r -d /opt/cifpy3 -M cif
 

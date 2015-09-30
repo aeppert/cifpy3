@@ -177,6 +177,7 @@ if [[ OS_DEBIAN -gt 0 ]] || [[ OS_UBUNTU -gt 0 ]]; then
     # Add CIF to everyone's $PATH (also add it to running shell)
     echo 'PATH="${PATH}:/opt/cifpy3/bin/"' > /etc/profile.d/cif.sh
     . /etc/profile.d/cif.sh
+    export PATH="${PATH}"
 
     # Start it up, need to detect which version
     if [[ OS_DEBIAN -gt 0 ]]; then
@@ -187,7 +188,7 @@ if [[ OS_DEBIAN -gt 0 ]] || [[ OS_UBUNTU -gt 0 ]]; then
         service cif-server start
     fi
     # Print information
-    echo "[OKAY] CIF has been installed. You can now use the 'cif' command."
+    echo "[OKAY] CIF has been installed. You can now use the 'cif' command. (You may have to logout/login)"
     echo "[OKAY] Your ADMIN API token is ${TOKEN}. It has also been written to ~/.cif"
 
 fi

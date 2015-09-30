@@ -63,15 +63,17 @@ The lifecycle of an observable
 Prerequisites
 -------------
 * A powerful and fast upstream DNS server (use a local caching instance is preferred).
-  * This software can generate 3000 DNS requests per second when using 8vCPU and is processing observables
-* Not entirely known just yet. Not all platforms have been tested. An installer script is provided that will handle major distributions
+  * This software can generate over 3000 DNS requests/second second when using 8 vCPUs and is processing lots of observables
+* One of the following supported operating systems
+  * Debian 8 (jessie) or later
+  * Ubuntu 14.04 (trusty) or later
 
 
 Installation
 -------------
 By default CIFpy3 gets installed to /opt/CIFpy3/.
 
-> **note**: be sure to save the admin token generated during installation. You need it if you want to add any additional users or use CIFpy3 with authentication enabled or even use the API.
+> **note**: be sure to save the admin token generated during installation. You need it if you want to add any additional users or use CIFpy3 with authentication enabled or even use the API. It does get saved to ~/.cif.
 
 ```
 #!/bin/bash
@@ -82,6 +84,18 @@ chmod +x install.sh
 
 CIFpy3 will automatically install and configure a token for the cli & user that installs CIFpy3. This is the admin token. Any token flagged as an 'admin' is capable of deleting other admins.
 
+
+Updating
+--------
+Very simple process to update cifpy3
+
+```
+#!/bin/bash
+cd /opt/cifpy3
+git pull
+```
+
+Then reboot your server or just restart the cif-server service.
 
 Usage
 -------
@@ -101,7 +115,7 @@ CIFpy3 comes with a CLI client called 'cif'. This client can be used to manage a
 * Features
   * Select only fields desired. Almost any field is searchable
   * Customize output formats (csv,pipe,xml,json,delimiter)
-  * Shows HTTP requests sent and recieved for debugging and advanced API usage
+  * Shows HTTP requests sent and received for debugging and advanced API usage
 
 More details are available via the --help argument(> cif --help)
 
@@ -109,7 +123,7 @@ More details are available via the --help argument(> cif --help)
 
 The REST API by default is available on port 8080. It is very simple to use and returns JSON payloads for requests that return objects.
 
-Objects are created or modified using POST parameters. For a full list of parameters and thier meanings please see the object reference guide below.
+Objects are created or modified using POST parameters. For a full list of parameters and their meanings please see the object reference guide below.
 
 > **note**: The CLI utility can generate and show the HTTP request sent if additional examples are needed
 
@@ -160,7 +174,7 @@ Most of these are automatically filled in using Worker meta and plugins after th
 * altid: Alternate ID or link to more details about the observable.
 * altid_tlp: Traffic Light Protocol of the TLP. May be different from the observable TLP
 * additional_data: Original Purpose Unknown. Likely a place for any additional data that doesn't fit anywhere else.
-* Other non-standard object attributes can be created and stored by simply creating the observable with them (.e.g rank)
+* Other non-standard object attributes can be created and stored by simply creating the observable with them (e.g. rank)
 
 #### Observable Type Specific attributes
 * ipv4, ipv6
@@ -179,9 +193,9 @@ Most of these are automatically filled in using Worker meta and plugins after th
   * citycode: GeoIP Citycode
   * longitude: GPS Longitude
   * latitude: GPS latitude
-  * gelocation: GPS coordinate concatenation of longitude and latitude
+  * geolocation: GPS coordinate concatenation of longitude and latitude
   * timezone: GeoIP guessed timezone of IP address
-  * subdivision: Possible housing subidivision for this IP address
+  * subdivision: Possible housing subdivision for this IP address
 * url, fdqn
   * portlist: One or more ports applicable to the observable
   * protocol: The IP protocol used for communication (.e.g. ip, tcp, udp)

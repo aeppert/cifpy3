@@ -28,11 +28,12 @@ group.add_argument('--start', type=int, help="Start at record")
 group.add_argument('--count', type=int, help="Get this many records")
 group.add_argument('--chunk-size', type=int, help="Get x records at a time from the backend", default=10000)
 
-group = parser.add_argument_group('Debugging Options')
-group.add_argument('--show-request', dest='show_request', action="store_true",
-                   help='Shows the HTTP headers used when making the request')
-group.add_argument('--show-response', dest='show_response', action="store_true",
-                   help='Shows the HTTP headers the server responded with')
+# Debugging options not supported yet
+# group = parser.add_argument_group('Debugging Options')
+# group.add_argument('--show-request', dest='show_request', action="store_true",
+#                   help='Shows the HTTP headers used when making the request')
+# group.add_argument('--show-response', dest='show_response', action="store_true",
+#                   help='Shows the HTTP headers the server responded with')
 
 group = parser.add_argument_group('Output Options')
 group.add_argument('--format', dest='format', choices=['cli', 'json', 'xml', 'csv', 'custom', 'single'], default="cli",

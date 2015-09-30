@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Root check
+if [[ "`whoami`" != "root" ]]; then
+    echo "[ERROR] You must run this install script as root"
+    exit 1
+fi
+
 # Operating System tests
 OS_LINUX=0
 OS_DEBIAN=0
@@ -49,7 +55,7 @@ if [[ OS_DEBIAN -gt 0 ]] || [[ OS_UBUNTU -gt 0 ]]; then
 
     # Apt Dependencies
     echo -n "Installing Apt Dependencies..."
-    sudo apt-get -qq -y install git python3 python3-requests python3-yaml python3-dnspython python3-pip python3-dateutil \
+    apt-get -qq -y install git python3 python3-requests python3-yaml python3-dnspython python3-pip python3-dateutil \
     elasticsearch
     if [[ $? -ne 0 ]]; then
         echo "[ERROR] Cann  ot Install dependencies."
@@ -59,7 +65,7 @@ if [[ OS_DEBIAN -gt 0 ]] || [[ OS_UBUNTU -gt 0 ]]; then
 
     # Pip dependencies
     echo -n "Installing Pip3 Dependencies..."
-    sudo pip3 -q install pygeoip feedparser tabulate
+    pip3 -q install pygeoip feedparser tabulate
     if [[ $? -ne 0 ]]; then
         echo "[ERROR] Cannot Install dependencies."
         exit
@@ -67,9 +73,9 @@ if [[ OS_DEBIAN -gt 0 ]] || [[ OS_UBUNTU -gt 0 ]]; then
     echo "Done"
 
     # Modify elasticsearch to startup automatically
-    sudo cat /etc/default/elasticsearch | sed -e 's/#START_DAEMON/START_DAEMON/' > /etc/default/elasticsearch.new
-    sudo mv /etc/default/elasticsearch.new /etc/default/elasticsearch
-    sudo /etc/init.d/elasticsearch start
+    cat /etc/default/elasticsearch | sed -e 's/#START_DAEMON/START_DAEMON/' > /etc/default/elasticsearch.new
+    mv /etc/default/elasticsearch.new /etc/default/elasticsearch
+    /etc/init.d/elasticsearch start
 
     # Create CIF user
     useradd -r -d /opt/cifpy3 -M cif-server

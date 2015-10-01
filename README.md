@@ -7,6 +7,21 @@ There are two main components: the server, and the client. The server is respons
 
 ----------
 
+* [Features](#features)
+* [Architecture](#architecture)
+* [Prerequisites](#prerequisites)
+* [Updating](#installation)
+* [Usage](#installation)
+  * [CLI Usage](#cli-usage)
+  * [API Usage](#api-usage)
+    * [Example Search Request](#example-observable-search-request)
+    * [Example Submission](#example-observable-submission)
+* [Object Reference](#object-reference)
+  * [Observable](#observable)
+    * [Observable Type Specific](#observable-type-specific-attributes)
+  * [Token](#token)
+* [Performance Notes](#performance-notes)
+
 Features
 ----------
 * Powered by Python 3.4+

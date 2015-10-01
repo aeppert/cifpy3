@@ -72,9 +72,10 @@ if [[ OS_CENTOS -gt 0 ]] || [[ OS_REDHAT -gt 0 ]]; then
     if [[ OS_REDHAT -gt 0 ]]; then
         VERSION=$(cat /etc/redhat-release | awk -F" " ' { print $7 } ' | awk -F"." ' { print $1 } ')
         if [[ ${VERSION} -lt 7 ]]; then
-            echo "[ERROR] Minimal Version of CentOS 7 required."
+            echo "[ERROR] Minimal Version of RedHat 7 required."
             exit 1
         fi
+        subscription-manager repos --enable rhel-7-server-optional-rpms
     fi
 
     echo "[INFO] Installing CentOS dependencies..."
@@ -101,7 +102,7 @@ if [[ OS_CENTOS -gt 0 ]] || [[ OS_REDHAT -gt 0 ]]; then
     echo "[OKAY] Installed Python34"
 
     echo -n "[INFO] Installing Pip3 dependencies..."
-    scl enable rh-python34 -- pip3 install pygeoip feedparser tabulate pyyaml requests dnspython3 python-dateutil
+    scl enable rh-python34 -- pip3 -q install pygeoip feedparser tabulate pyyaml requests dnspython3 python-dateutil
     if [[ $? -ne 0 ]]; then
         echo "[ERROR] Cannot Pip Install dependencies."
         exit

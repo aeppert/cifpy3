@@ -6,7 +6,7 @@ After=network.target
 User=cif
 Group=cif
 EnvironmentFile=-/etc/sysconfig/cif-server
-ExecStart=/usr/bin/scl enable python34 -- /opt/cifpy3/bin/cif-server $DAEMON_OPTS
+ExecStart=/usr/bin/scl enable rh-python34 -- /opt/cifpy3/bin/cif-server $DAEMON_OPTS
 Restart=on-failure
 TimeoutStopSec=3
 

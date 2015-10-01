@@ -91,6 +91,15 @@ By default CIFpy3 gets installed to /opt/CIFpy3/.
 
 > **note**: be sure to save the admin token generated during installation. You need it if you want to add any additional users or use CIFpy3 with authentication enabled or even use the API. It does get saved to ~/.cif.
 
+RedHat/CENTOS
+```
+#!/bin/bash
+curl -k https://raw.githubusercontent.com/jmdevince/cifpy3/master/bin/install.sh > install.sh
+chmod +x install.sh
+./install.sh
+```
+
+Ubuntu/Debian
 ```
 #!/bin/bash
 wget --no-check-certificate -O install.sh https://raw.githubusercontent.com/jmdevince/cifpy3/master/bin/install.sh

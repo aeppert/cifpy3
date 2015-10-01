@@ -83,7 +83,8 @@ Prerequisites
 * One of the following supported operating systems
   * Debian 8 (jessie) or later
   * Ubuntu 14.04 (trusty) or later
-
+  * CentOS 7 or later
+  * RHEL 7 or later (with an active RHN subscription)
 
 Installation
 -------------
@@ -91,7 +92,7 @@ By default CIFpy3 gets installed to /opt/CIFpy3/.
 
 > **note**: be sure to save the admin token generated during installation. You need it if you want to add any additional users or use CIFpy3 with authentication enabled or even use the API. It does get saved to ~/.cif.
 
-RedHat/CENTOS
+RedHat/CentOS
 ```
 #!/bin/bash
 curl -k https://raw.githubusercontent.com/jmdevince/cifpy3/master/bin/install.sh > install.sh

@@ -6,7 +6,7 @@ After=network.target
 User=cif
 Group=cif
 EnvironmentFile=-/etc/default/cif-server
-ExecStart=/opt/cifpy3/bin/cif-server $DAEMON_OPTS
+ExecStart=/usr/local/cifpy3/bin/cif-server $DAEMON_OPTS
 Restart=on-failure
 TimeoutStopSec=3
 

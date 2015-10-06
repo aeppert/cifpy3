@@ -139,7 +139,7 @@ class Feed(object):
                 buf = temp_bin.read(1024 * 1024)
                 if len(buf) == 0:
                     break
-                file_to_parse.write(buf.decode("UTF-8"))
+                file_to_parse.write(buf.decode("ISO8859-1"))
             self.logging.debug("Wrote {0} bytes to text file.".format(file_to_parse.tell()))
             file_to_parse.seek(0)
 

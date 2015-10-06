@@ -124,7 +124,7 @@ class Observable(Base):
 
     @group.setter
     def group(self, value):
-        if self._validation and group is not None:
+        if self._validation and value is not None:
             if not isinstance(value, list):
                 if isinstance(value, str):
                     value = [value]

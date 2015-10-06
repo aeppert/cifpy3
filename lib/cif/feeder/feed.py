@@ -134,7 +134,7 @@ class Feed(object):
                 else:
                     temp_bin = temp
 
-            file_to_parse = tempfile.TemporaryFile(mode="w+")
+            file_to_parse = tempfile.TemporaryFile(mode="w+", encoding="ISO8859-1")
             while True:
                 buf = temp_bin.read(1024 * 1024)
                 if len(buf) == 0:

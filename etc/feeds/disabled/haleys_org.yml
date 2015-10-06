@@ -5,7 +5,7 @@ defaults:
   tlp: green
   altid_tlp: white
   confidence: 65
-  pattern: ^ALL\s\:\s(\S+) $
+  pattern: ^ALL\s\:\s(\S+)$
   values:
     - observable
     - null

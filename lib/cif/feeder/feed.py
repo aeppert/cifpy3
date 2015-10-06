@@ -97,7 +97,7 @@ class Feed(object):
                 }
 
                 response = requests.request(feed_parsing_details["method"], feed_parsing_details["remote"],
-                                            proxies=cif.proxies, stream=True, headers=headers
+                                            proxies=cif.proxies, stream=True, headers=headers, verify=False
 
                                             )
 

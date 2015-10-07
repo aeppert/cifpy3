@@ -13,7 +13,7 @@
 # CIF Application, you will experience less HTTP timeouts
 # and ultimately obtain the data served up by CleanMX.
 
-parser: xml
+parser: rss
 defaults:
   provider: support.clean-mx.de
   altid_tlp: amber

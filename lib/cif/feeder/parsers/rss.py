@@ -31,7 +31,7 @@ class Rss(Parser):
 
         observables = []
 
-        if self.total_objects == 0 and "start" in self.parsing_details and self.parsing_details["start"] > 0:
+        if self.total_objects == 0 and "start" in self.parsing_details and self.parsing_details["start"] > 1:
             self.position = self.parsing_details["start"]
 
         objects = 0

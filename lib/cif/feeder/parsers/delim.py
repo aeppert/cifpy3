@@ -61,7 +61,7 @@ class Delim(Parser):
             if observable is not None:
                 observables.append(observable)
                 objects += 1
-                self.total_objects += 1
+            self.total_objects += 1
 
             if self.ending and self.total_objects >= self.end:
                 self.parsing = False

@@ -24,14 +24,17 @@ feeds:
     remote: 'http://support.clean-mx.de/clean-mx/xmlviruses.php?'
     altid: 'http://support.clean-mx.de/clean-mx/viruses.php?id=<id>'
     node: entry
-    map:
-      - first
-      - virusname
-      - url
-      - id
-    values:
-      - lasttime
-      - description
-      - observable
-      - id
+    pattern:
+      first:
+        pattern: '(.*)'
+        values: lasttime
+      virusname:
+        pattern: '(.*)'
+        values: description
+      url:
+        pattern: '(.*)'
+        values: observable
+      id:
+        pattern: '(.*)'
+        values: id
     tags: malware

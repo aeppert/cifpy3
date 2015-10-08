@@ -29,7 +29,7 @@ class Regex(Parser):
 
         observables = []
 
-        if self.total_objects == 0 and "start" in self.parsing_details and self.parsing_details["start"] > 0:
+        if self.total_objects == 0 and "start" in self.parsing_details and self.parsing_details["start"] > 1:
             for x in range(1, self.parsing_details["start"]):
                 if self.file.tell() >= self.file_size:
                     self.parsing = False

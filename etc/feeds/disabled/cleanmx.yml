@@ -22,7 +22,7 @@ defaults:
 feeds:
   malware:
     remote: 'http://support.clean-mx.de/clean-mx/xmlviruses.php?'
-    altid: 'http://support.clean-mx.de/clean-mx/viruses.php?id=<id>'
+    altid: 'http://support.clean-mx.de/clean-mx/viruses.php?id=<rssid>'
     node: entry
     pattern:
       first:
@@ -36,5 +36,5 @@ feeds:
         values: observable
       id:
         pattern: '(.*)'
-        values: id
+        values: rssid
     tags: malware

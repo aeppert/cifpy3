@@ -69,8 +69,8 @@ class Regex(Parser):
             observable = self.create_observable_from_meta_if_not_in_journal(results)
             if observable is not None:
                 observables.append(observable)
-                self.total_objects += 1
                 objects += 1
+            self.total_objects += 1
 
             if self.ending and self.total_objects >= self.end:
                 self.parsing = False

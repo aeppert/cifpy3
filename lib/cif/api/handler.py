@@ -13,6 +13,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def __init__(self, *args):
         self.token = None
         http.server.BaseHTTPRequestHandler.__init__(self, *args)
+
+
+    def connect_to_backend(self):
         # Based on the startup options for cif-server, let's get the backend + instantiate the class from that module
         self.logging.debug("Loading backend: {0}".format(cif.options.storage.lower()))
         self.backend = getattr(__import__("cif.backends.{0}".format(
@@ -89,6 +92,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         searched.
 
         """
+        self.connect_to_backend()
         if not self.check_authentication():
             return
 
@@ -176,6 +180,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         """Processes POST requests. POST requests will update an existing object.
         Only tokens can be updated. Returns a 404 if the object isn't found.
         """
+        self.connect_to_backend()
         if not self.check_authentication():
             return
         if not self.is_admin():
@@ -223,6 +228,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         Sends a 202 (Accepted) for creating observables
 
         """
+        self.connect_to_backend()
         if not self.check_authentication:
             return
 
@@ -282,6 +288,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         """Handles a DELETE HTTP request. Only tokens can be deleted at this time.
         :return:
         """
+        self.connect_to_backend()
         if not self.is_admin():
             return
 

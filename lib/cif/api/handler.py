@@ -13,6 +13,15 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def __init__(self, *args):
         self.token = None
         http.server.BaseHTTPRequestHandler.__init__(self, *args)
+        # Based on the startup options for cif-server, let's get the backend + instantiate the class from that module
+        self.logging.debug("Loading backend: {0}".format(cif.options.storage.lower()))
+        self.backend = getattr(__import__("cif.backends.{0}".format(
+            cif.options.storage.lower()), fromlist=[cif.options.storage.title()]), cif.options.storage.title()
+        )()
+
+        # Connect to the backend
+        self.logging.debug("Connecting to backend: {0}".format(cif.options.storage_uri))
+        self.backend.connect(cif.options.storage_uri)
 
     def check_authentication(self):
         """Checks authentication for an incoming request
@@ -31,7 +40,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
         if self.token is None:
             try:
-                self.token = self.server.backend.token_get(self.headers['Authorization'])
+                self.token = self.backend.token_get(self.headers['Authorization'])
             except LookupError as e:
                 self.send_error(401, 'Not Authorized', str(e))
                 return False
@@ -130,7 +139,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
                 try:
 
-                    observables = self.server.backend.observable_search(args, start, count)
+                    observables = self.backend.observable_search(args, start, count)
                     self.send_response(200)
                     self.send_header('Content-Type', 'application/json')
                     self.end_headers()
@@ -149,7 +158,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         elif request['object'] == "tokens":
             if not self.is_admin():
                 return
-            tokens = self.server.backend.token_list()
+            tokens = self.backend.token_list()
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
@@ -188,7 +197,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         request = match.groupdict()
 
         try:
-            token = self.server.backend.token_get(request['id'])
+            token = self.backend.token_get(request['id'])
         except LookupError as e:
             self.send_error(404, 'Not Found', str(e))
             return
@@ -201,7 +210,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 return
 
         try:
-            self.server.backend.token_update(token)
+            self.backend.token_update(token)
         except Exception as e:
             self.send_error(500, 'Internal Server Error', str(e))
             return
@@ -242,7 +251,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 if "token" in post_variables:
                     del post_variables["token"]
                 token = cif.types.Token(post_variables)
-                self.server.backend.token_create(token)
+                self.backend.token_create(token)
             except Exception as e:
                 self.send_error(422, 'Could not process token: {0}'.format(e))
                 return
@@ -285,6 +294,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
         request = match.groupdict()
 
         try:
-            self.server.backend.token_delete(request['id'])
+            self.backend.token_delete(request['id'])
         except Exception as e:
             self.send_error(500, "Failed to delete token: {0}".format(e))

@@ -6,7 +6,7 @@ __author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 import os
 import sys
-import dateutil
+import datetime
 import argparse
 import logging
 import gzip

@@ -36,17 +36,17 @@ class Feeder(multiprocessing.Process):
             for feed_name in feeds[feed_file].feed_config['feeds'].keys():
                 if "interval" in feeds[feed_file].feed_config['feeds'][feed_name]:
                     if feeds[feed_file].feed_config['feeds'][feed_name]['interval'] == "hourly":
-                        schedule.every().hour.do(feeds[feed_file].process, feed_name)
+                        self.logging.error(repr(schedule.every().hour.at("00:00").do(feeds[feed_file].process, feed_name)))
                     elif feeds[feed_file].feed_config['feeds'][feed_name]['interval'] == "daily":
-                        schedule.every().day.at("00:00").do(feeds[feed_file].process, feed_name)
+                        self.logging.error(repr(schedule.every().day.at("00:00").do(feeds[feed_file].process, feed_name)))
                     elif feeds[feed_file].feed_config['feeds'][feed_name]['interval'] == "weekly":
-                        schedule.every().day.at("00:00").do(feeds[feed_file].process, feed_name)
+                        self.logging.error(repr(schedule.every().day.at("00:00").do(feeds[feed_file].process, feed_name)))
                     else:
-                        schedule.every().hour.do(feeds[feed_file].process, feed_name)
+                        self.logging.error(repr(schedule.every().hour.do(feeds[feed_file].process, feed_name)))
                 else:
-                    schedule.every().hour.do(feeds[feed_file].process, feed_name)
+                    self.logging.error(repr(schedule.every().hour.do(feeds[feed_file].process, feed_name)))
                 
-                
+        
     def run(self):
         while True:
             schedule.run_pending()

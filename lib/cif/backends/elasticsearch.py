@@ -98,7 +98,7 @@ class Elasticsearch(Backend):
         for index in result.keys():
             if index.startswith("cif.observables-"):
                 (year,month,day) = index.replace("cif.observables-", "").split(".")
-                index_date = datetime.datetime(year, month, day)
+                index_date = datetime.datetime(int(year), int(month), int(day))
                 if index_date < date:
                     # Delete the index
                     self._request(path='/{0}'.format(index), method="DELETE")

@@ -55,7 +55,10 @@ class Delim(Parser):
                     )
                 )
                 continue
-
+            for key,value in match:
+                if isinstance(value, str):
+                    match[key] = value.strip()
+            
             observable = self.create_observable_from_meta_if_not_in_journal(match)
 
             if observable is not None:

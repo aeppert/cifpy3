@@ -140,6 +140,6 @@ if __name__ == "__main__":
             match = date.search(file)
             if match:
                 matchdict = match.groupdict()
-                if datetime.timedelta(days=cif.options.days) < datetime.datetime(matchdict['year'], matchdict['month'], matchdict['day']):
+                if datetime.timedelta(days=cif.options.days) < datetime.datetime(int(matchdict['year']), int(matchdict['month']), int(matchdict['day'])):
                     os.unlink(os.path.join(cif.CACHEDIR, file))
                 

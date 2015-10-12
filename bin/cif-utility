@@ -11,6 +11,7 @@ import argparse
 import logging
 import gzip
 import shutil
+import re
 
 import requests
 

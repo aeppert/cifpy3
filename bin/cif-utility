@@ -38,7 +38,11 @@ commands.add_argument('-d', '--delete', dest='clear', action="store_true",
                       help='Delete all observables')
 commands.add_argument('-g', '--geoip', dest='geoip', action="store_true",
                       help='Download GeoIP Data into LIB directory')
-
+commands.add_argument('-c', '--clean', dest='clean', action="store_true",
+                      help='Remove observables older than --days number of days')
+                      
+parser.add_argument('--days', 'dest='days', nargs='?', type=int, default=14,
+                      help='Number of days to remove')
 parser.add_argument('--verbose', dest='loglevel', nargs='?', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
                     default='WARNING')
 
@@ -124,3 +128,6 @@ if __name__ == "__main__":
 
     if "clear" in cif.options and cif.options.clear:
         backend.clear()
+
+    if "clean" in cif.options and cif.options.clean:
+        backend.observable_clean(datetime.datetime.now() - datetime.timedelta(days=cif.options.days))

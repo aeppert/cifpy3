@@ -3,6 +3,7 @@ __author__ = 'James DeVincentis <james.d@hexhost.net>'
 import http.client
 import json
 
+import datetime
 import dateutil.parser
 
 from . import Backend
@@ -87,7 +88,21 @@ class Elasticsearch(Backend):
             observables.append(self._object('observable', hit["_source"]))
 
         return observables
-
+    
+    def observable_clean(self, date):
+        """Deletes all observables older than date
+        
+        :param date datetime: a datetime object. Use this as a point of reference for deleting objects older than this date
+        """
+        result = self._request(path='/_aliases')
+        for index in result.keys():
+            if index.startswith("cif.observables-"):
+                (year,month,day) = index.replace("cif.observables-", "").split(".")
+                index_date = datetime.datetime(year, month, day)
+                if index_date < date:
+                    # Delete the index
+                    self._request(path='/{0}'.format(index), method="DELETE")
+        
     def observable_create(self, observables):
         """Creates a new observable or list of observables using the ElasticSearch bulk API
 

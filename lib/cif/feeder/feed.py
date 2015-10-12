@@ -108,7 +108,7 @@ class Feed(object):
                                             )
             except:
                 self.logging.exception("Could not fetch remote url '{0}'".format(feed_parsing_details["remote"]))
-                continue
+                return
 
             if response.status_code > 300:
                 self.logging.error("Failed fetching remote feed '{0}': {1} {2}".format(

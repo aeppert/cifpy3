@@ -328,10 +328,10 @@ class Elasticsearch(Backend):
         """
 
         # Params that will be searched in a range with greater than or equal to
-        gte_params = ['confidence', 'firsttime', 'reporttime']
+        gte_params = ['confidence', 'firsttime', 'reporttime', 'timestamp']
 
         # Params that will be search in a range with less than or equal to
-        lte_params = ['lasttime', 'reporttimeend']
+        lte_params = ['lasttime', 'reporttimeend', 'timestampend']
 
         # Params that must be a list if present
         list_params = ['tags', 'description', 'application', 'asn', 'provider', 'rdata', 'group']
@@ -359,6 +359,8 @@ class Elasticsearch(Backend):
                     else:
                         a.append({"term": {param: value}})
             elif param in lte_params:
+                if param.endswith('end'):
+                    param = param[:-3]
                 a.append({"range": {param: {"lte": value}}})
             elif param in gte_params:
                 a.append({"range": {param: {"gte": value}}})

@@ -58,7 +58,7 @@ class Feed(object):
         for feed_name, feed in self.feed_config["feeds"].items():
             # These are fields that are used for control when parsing and should not be passed down to the observables
             fields_to_strip = ['node', 'map', 'values', 'pattern', 'remote', 'parser',
-                               'username', 'password', 'method', 'start', 'end']
+                               'username', 'password', 'method', 'start', 'end', 'interval']
 
             # Pull out parsing details for feeds from defined meta
             feed_parsing_details = dict((name, feed[name]) for name in fields_to_strip if name in feed.keys())

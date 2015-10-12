@@ -41,7 +41,7 @@ commands.add_argument('-g', '--geoip', dest='geoip', action="store_true",
 commands.add_argument('-c', '--clean', dest='clean', action="store_true",
                       help='Remove observables older than --days number of days')
                       
-parser.add_argument('--days', 'dest='days', nargs='?', type=int, default=14,
+parser.add_argument('--days', dest='days', nargs='?', type=int, default=14,
                       help='Number of days to remove')
 parser.add_argument('--verbose', dest='loglevel', nargs='?', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
                     default='WARNING')

@@ -95,11 +95,13 @@ class Feed(object):
                     'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '
                     'Chrome/45.0.2454.93 Safari/537.36'
                 }
-
-                response = requests.request(feed_parsing_details["method"], feed_parsing_details["remote"],
-                                            proxies=cif.proxies, stream=True, headers=headers, verify=False
-
-                                            )
+                try:
+                    response = requests.request(feed_parsing_details["method"], feed_parsing_details["remote"],
+                                                proxies=cif.proxies, stream=True, headers=headers, verify=False
+                                                )
+                except:
+                    self.logging.exception("Could not fetch remote url '{0}'".format(feed_parsing_details["remote"]))
+                    continue
 
                 if response.status_code > 300:
                     self.logging.error("Failed fetching remote feed '{0}': {1} {2}".format(

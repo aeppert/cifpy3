@@ -55,7 +55,7 @@ class Delim(Parser):
                     )
                 )
                 continue
-            for key,value in match:
+            for key,value in enumerate(match):
                 if isinstance(value, str):
                     match[key] = value.strip()
             

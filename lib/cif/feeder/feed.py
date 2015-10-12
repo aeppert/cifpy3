@@ -47,7 +47,7 @@ class Feed(object):
 
         self.feed_config = feed_config
 
-    def processall(self);
+    def processall(self):
         if "feeds" not in self.feed_config.keys():
             return
         for feed_name, feed in self.feed_config["feeds"].items():

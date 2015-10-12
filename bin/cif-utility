@@ -47,9 +47,9 @@ parser.add_argument('--verbose', dest='loglevel', nargs='?', choices=['DEBUG', '
                     default='WARNING')
 
 group = parser.add_argument_group('Storage Options')
-group.add_argument('-s', '--storage-engine', dest='storage', nargs='?', type=str, default='elasticsearch',
+group.add_argument('-S', '--storage-engine', dest='storage', nargs='?', type=str, default='elasticsearch',
                    help='storage engine')
-group.add_argument('-c', '--storage-connection', dest='storage_uri', nargs='?', type=str,
+group.add_argument('-C', '--storage-connection', dest='storage_uri', nargs='?', type=str,
                    default='http://127.0.0.1:9200', help='Connection string for connecting to the storage engine')
 
 # Assign options for global usage in the cif package

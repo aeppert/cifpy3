@@ -43,9 +43,10 @@ class Regex(Parser):
                 break
 
             line = self.file.readline().strip()
-
+            if line.startswith('#'):
+                continue
             match = self.regex.search(line)
-
+            
             if match is None:
                 if not line.startswith('#') and not line.startswith(';') and not len(line) == 0:
                     self.logging.debug("No Match - position {0}; contents: '{1}'; match: {2}; values: {3}".format(

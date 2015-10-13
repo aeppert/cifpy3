@@ -60,7 +60,7 @@ class Feed(object):
         """
         if "feeds" not in self.feed_config.keys():
             return
-        if name not in self.feed_config['feeds']:
+        if feed_name not in self.feed_config['feeds']:
             return
         
         # These are fields that are used for control when parsing and should not be passed down to the observables
@@ -68,11 +68,11 @@ class Feed(object):
                            'username', 'password', 'method', 'start', 'end', 'interval']
 
         # Pull out parsing details for feeds from defined meta
-        feed_parsing_details = dict((name, self.feed_config["feeds"][name]) for name in fields_to_strip if name in self.feed_config["feeds"].keys())
+        feed_parsing_details = dict((name, self.feed_config["feeds"][feed_name]) for name in fields_to_strip if name in self.feed_config["feeds"].keys())
         feed_parsing_details['feed_name'] = feed_name
 
         # Exclude control fields from defined meta for created observables
-        feed_meta = dict((name, self.feed_config["feeds"][name]) for name in self.feed_config["feeds"].keys() if name not in fields_to_strip)
+        feed_meta = dict((name, self.feed_config["feeds"][feed_name]) for name in self.feed_config["feeds"].keys() if name not in fields_to_strip)
 
         if "method" not in feed_parsing_details.keys():
             feed_parsing_details["method"] = "GET"

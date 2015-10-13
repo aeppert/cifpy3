@@ -239,12 +239,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
             return
 
         # Update the ID with the given post parameters
-        content_type, parameter_dict = cgi.parse_header(self.headers.getheader('Content-Type'))
+        content_type, parameter_dict = cgi.parse_header(self.headers['Content-Type'])
         if content_type == 'multipart/form-data':
             post_variables = cgi.parse_multipart(self.rfile, parameter_dict)
         elif content_type == 'application/x-www-form-urlencoded':
-            length = int(self.headers.getheader('content-length'))
-            post_variables = urllib.parse.parse_qs(self.rfile.read(length), keep_blank_values=1)
+            length = int(self.headers['content-length'])
+            post_variables = dict((k, v if len(v) > 1 else v[0]) for k, v in urllib.parse.parse_qs(self.rfile.read(length).decode('UTF-8'), keep_blank_values=1).items())
         else:
             post_variables = {}
 

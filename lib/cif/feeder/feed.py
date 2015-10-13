@@ -68,11 +68,11 @@ class Feed(object):
                            'username', 'password', 'method', 'start', 'end', 'interval']
 
         # Pull out parsing details for feeds from defined meta
-        feed_parsing_details = dict((name, self.feed_config["feeds"][feed_name]) for name in fields_to_strip if name in self.feed_config["feeds"].keys())
+        feed_parsing_details = dict((name, self.feed_config["feeds"][feed_name][name]) for name in fields_to_strip if name in self.feed_config["feeds"][feed_name].keys())
         feed_parsing_details['feed_name'] = feed_name
 
         # Exclude control fields from defined meta for created observables
-        feed_meta = dict((name, self.feed_config["feeds"][feed_name]) for name in self.feed_config["feeds"].keys() if name not in fields_to_strip)
+        feed_meta = dict((name, self.feed_config["feeds"][feed_name][name]) for name in self.feed_config["feeds"][feed_name].keys() if name not in fields_to_strip)
 
         if "method" not in feed_parsing_details.keys():
             feed_parsing_details["method"] = "GET"

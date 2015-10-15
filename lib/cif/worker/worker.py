@@ -2,7 +2,6 @@ __author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 import multiprocessing
 import threading
-import queue
 import time
 
 import cif
@@ -92,7 +91,7 @@ class Process(multiprocessing.Process):
         self.backendlock = threading.Lock()
         self.name = name
         self.logging = cif.logging.getLogger("worker #{0}".format(name))
-        self.queue = queue.Queue(cif.options.threads*2)
+        self.queue = multiprocessing.Queue(cif.options.threads*2)
         self.threads = {}
 
     def run(self):

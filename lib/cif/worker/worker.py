@@ -25,6 +25,7 @@ class Thread(threading.Thread):
         self.logging.debug("Booted")
         while True:
             observable = self.queue.get()
+            self.logging.error("Got {0} from local queue: {1}".format(repr(observable), observable.observable))
             if observable is None:
                 break
             self.logging.debug("Thread Loop: Got observable")
@@ -67,6 +68,7 @@ class QueueManager(threading.Thread):
         self.destination = destination
         self.worker = worker
         self.die = False
+        self.logging = cif.logging.getLogger("Manager #{0}".format(worker))
 
     def run(self):
         """Runs in an infinite loop taking any tasks from the main queue and distributing it to the workers. First one
@@ -75,12 +77,14 @@ class QueueManager(threading.Thread):
         """
         while True:
             observable = self.source.get()
+            self.logging.error("Got {0} from global queue: {1}".format(repr(observable), observable.observable))
             if observable is None:
                 for i in range(1, cif.options.threads+1):
                     self.destination.put(None)
                 self.die = True
                 break
             else:
+                self.logging.error("Put {0} into local queue: {1}".format(repr(observable), observable.observable))
                 self.destination.put(observable)
 
 

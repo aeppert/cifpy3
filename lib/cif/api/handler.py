@@ -279,7 +279,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             except Exception as e:
                 self.send_error(422, 'Could not process observable: {0}'.format(e))
                 return
-            self.server.logging.error("Put {0} into global queue: {1}".format(repr(observable), repr(cif.worker.tasks))
+            self.server.logging.error("Put {0} into global queue: {1}".format(repr(observable), repr(cif.worker.tasks)))
             cif.worker.tasks.put(observable)
             self.send_response(202)
             self.send_header('Location', '/observable/{0}'.format(observable.id))

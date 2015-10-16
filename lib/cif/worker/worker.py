@@ -76,7 +76,7 @@ class QueueManager(threading.Thread):
 
         """
         while True:
-            self.logging.error("Waiting for item from global queue: {0}".format(repr(self.source))
+            self.logging.error("Waiting for item from global queue: {0}".format(repr(self.source)))
             observable = self.source.get()
             self.logging.error("Got {0} from global queue: {1}".format(repr(observable), observable.observable))
             if observable is None:

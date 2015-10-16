@@ -80,6 +80,7 @@ class QueueManager(threading.Thread):
             self.logging.error("Got {0} from global queue: {1}".format(repr(observable), observable.observable))
             if observable is None:
                 for i in range(1, cif.options.threads+1):
+                    self.logging.error("Mudering my threads")
                     self.destination.put(None)
                 self.die = True
                 break

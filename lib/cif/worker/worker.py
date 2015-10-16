@@ -130,10 +130,12 @@ class Process(multiprocessing.Process):
                     break
                 queuemanager = QueueManager(self.name, tasks, self.queue)
                 queuemanager.start()
-
+            self.logging.debug("Local Queue Size: {0}".format(self.queue.qsize()))
+        
             for i in range(1, cif.options.threads+1):
                 if i not in self.threads or self.threads[i] is None or not self.threads[i].is_alive():
                     self.threads[i] = Thread(self.name, str(i), self.queue, self.backend, self.backendlock)
                     self.threads[i].start()
-
+                
+            
             time.sleep(5)

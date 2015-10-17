@@ -3,6 +3,7 @@ __author__ = 'James DeVincentis <james.d@hexhost.net>'
 import multiprocessing
 import threading
 import time
+import queue
 
 import cif
 
@@ -77,7 +78,11 @@ class QueueManager(threading.Thread):
         """
         while True:
             self.logging.error("Waiting for item from global queue: {0}".format(repr(self.source)))
-            observable = self.source.get()
+            try:
+                observable = self.source.get(False)
+            except queue.Empty:
+                time.sleep(.01)
+                continue
             self.logging.error("Got {0} from global queue: {1}".format(repr(observable), observable.observable))
             if observable is None:
                 for i in range(1, cif.options.threads+1):

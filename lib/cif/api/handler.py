@@ -281,6 +281,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 return
             self.server.logging.error("Put {0} into global queue: {1}".format(repr(observable), repr(cif.worker.tasks)))
             cif.worker.tasks.put(observable)
+            cif.worker.tasks.close()
             self.send_response(202)
             self.send_header('Location', '/observable/{0}'.format(observable.id))
             self.end_headers()

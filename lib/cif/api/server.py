@@ -8,7 +8,7 @@ import sys
 import cif
 
 
-class HTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
+class HTTPServer(socketserver.ForkingMixIn, http.server.HTTPServer):
     def __init__(self, *args, **kwargs):
         http.server.HTTPServer.__init__(self, *args, **kwargs)
 

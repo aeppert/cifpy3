@@ -7,7 +7,7 @@ import queue
 
 import cif
 
-tasks = multiprocessing.Queue(1310720)
+tasks = multiprocessing.Queue(262144)
 
 
 class Thread(threading.Thread):

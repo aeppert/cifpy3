@@ -120,6 +120,8 @@ try:
 except requests.exceptions.ConnectionError as e:
     sys.stderr.write("[ERROR] Could not make request to CIF Server: {0}\n".format(e))
     sys.exit(1)
+observable_count = 0
+
 if response.status_code == 200:
     observable_count = int(response.headers['content-length'])
 elif response.status_code == 404 or options['start'] > int(response.headers['content-length']):

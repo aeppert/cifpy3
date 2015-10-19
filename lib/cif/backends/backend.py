@@ -16,11 +16,7 @@ class Backend(object):
         raise NotImplementedError("This must be implemented in the backend storage class")
 
     # Searches observables
-    def observable_search(self, params, start=None, number=None):
-        raise NotImplementedError("This must be implemented in the backend storage class")
-
-    # Gets a count of observables for a search
-    def observable_search(self, params):
+    def observable_search(self, params, start=None, number=None, count_only=False):
         raise NotImplementedError("This must be implemented in the backend storage class")
         
     # Creates a new observable

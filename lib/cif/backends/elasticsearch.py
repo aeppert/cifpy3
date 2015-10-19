@@ -50,8 +50,7 @@ class Elasticsearch(Backend):
             self._request()
         except Exception as e:
             raise RuntimeError("Ping failed") from e
-
-    def observable_search(self, params, start=None, number=None):
+    def observable_search(self, params, start=None, number=None, count_only=False):
         """Uses a list of parameters to build a query and then return the objects from the ElasticSearch backend
 
         :param dict params: Parameters to use to build the search string
@@ -59,6 +58,7 @@ class Elasticsearch(Backend):
         :type start: None or int
         :param number: Number of records to retrieve starting at :py:attr:`start`
         :type number: None or int
+        :param boolean count_only: indicator to only return a count and not objects
         :return: List of retrieved observable objects (cif.type.Observable)
         :rtype: list
         :raises: LookupError
@@ -73,9 +73,17 @@ class Elasticsearch(Backend):
             query["size"] = number
 
         try:
-            result = self._request(path='/cif.observables-*/observables/_search', body=query)
+            if count_only:
+                result = self._request(path='/cif.observables-*/observables/_count', body=query)
+            else:
+                result = self._request(path='/cif.observables-*/observables/_search', body=query)
         except Exception as e:
             raise LookupError("Failed to get observables.") from e
+
+        if count_only:
+            if "count" not in result.keys():
+                raise RuntimeError("Not a properly formatted Elasticsearch count result")
+            return result['count']
 
         if "hits" not in result.keys():
             raise RuntimeError("Not A properly formatted Elasticsearch result")

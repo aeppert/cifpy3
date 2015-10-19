@@ -95,7 +95,59 @@ class Handler(http.server.BaseHTTPRequestHandler):
         """
         self.send_error(400, 'Bad Request', 'Requested Path: "{0}" is not valid for this api.\n{0}'.format(self.path,
                                                                                                            error))
+    def do_HEAD(self):
+        """Processes GET requests. These will retrieve or search objects. Tokens can only be listed. Observables can be
+        searched.
 
+        """
+        self.connect_to_backend()
+        if not self.check_authentication():
+            return
+
+        # Run a regex match against the path for supported methods and queries
+        match = re.search(r'^/(?P<object>observables?)/?(?:\?(?P<query_string>.*))?$', self.path)
+
+        if match is None:
+            self.send_bad_request()
+            return
+
+        request = match.groupdict()
+
+        if request['object'] == "observables" and request['query_string'] is not None:
+            self.server.logging.debug("Observable search requested by '{0}:{1}' with query_string: '{2}'".format(self.client_address[0], self.client_address[1], request['query_string']))
+            # Parses an available query string into a dict
+            args = dict(
+                (k, v if len(v) > 1 else v[0]) for k, v in urllib.parse.parse_qs(request['query_string']).items()
+            )
+
+            if "noauth" not in cif.options or not cif.options.noauth:
+                if "group" in args:
+                    if not isinstance(args["group"], list):
+                        args["group"] = [args["group"]]
+                    for idx, group in enumerate(args["group"]):
+                        if group not in self.token.groups:
+                            del group[idx]
+                    if len(args["group"]) == 0:
+                        args["group"] = self.token.groups
+                else:
+                    args["group"] = self.token.groups
+
+            try:
+                self.server.logging.debug("Searching backend for query for {0}:{1}".format(self.client_address[0], self.client_address[1]))
+                count = self.backend.observable_search(args, count_only=True)
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', count)
+                self.end_headers()
+            except LookupError as e:
+                self.send_error(404, 'Not Found', str(e))
+            except Exception as e:
+                self.send_error(500, 'Internal Server Error', str(e))
+                self.server.logging.exception('Exception while GET')
+        else:
+            self.send_bad_request()
+        return
+    
     def do_GET(self):
         """Processes GET requests. These will retrieve or search objects. Tokens can only be listed. Observables can be
         searched.

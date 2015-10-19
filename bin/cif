@@ -155,7 +155,7 @@ for x in range(0, options['parallel']):
     request_queue.append(None)
 
 workers = []
-for x in range(0, options['parallel'])
+for x in range(0, options['parallel']):
     worker = threading.Thread(target=do_request)
     worker.daemon = True
     worker.start()

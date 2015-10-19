@@ -19,10 +19,14 @@ class Backend(object):
     def observable_search(self, params, start=None, number=None):
         raise NotImplementedError("This must be implemented in the backend storage class")
 
+    # Gets a count of observables for a search
+    def observable_search(self, params):
+        raise NotImplementedError("This must be implemented in the backend storage class")
+        
     # Creates a new observable
     def observable_create(self, observable):
         raise NotImplementedError("This must be implemented in the backend storage class")
-
+    
     # Cleans observables older than date
     def observable_clean(self, date):
         raise NotImplementedError("This must be implemented in the backend storage class")

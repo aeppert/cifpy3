@@ -143,7 +143,7 @@ for x in range(0, request_count):
     results_list.append(None)
 
 for x in range(0, request_count):
-    request_queue.append({'index': x, 'url': '{0}/observables?start={1}&count={2}&{3}'.format(
+    request_queue.put({'index': x, 'url': '{0}/observables?start={1}&count={2}&{3}'.format(
             options['url'], options['start'], options['chunk_size'], options['query'])})
     
     options['start'] += options['chunk_size']
@@ -155,7 +155,7 @@ for x in range(0, request_count):
                 options['chunk_size'] = options['end'] - options['start']
 
 for x in range(0, options['parallel']):
-    request_queue.append(None)
+    request_queue.put(None)
 
 workers = []
 for x in range(0, options['parallel']):

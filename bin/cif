@@ -12,6 +12,7 @@ import csv
 import xml.etree.cElementTree
 import threading
 import math
+import queue
 
 import requests
 import requests.exceptions

@@ -323,8 +323,7 @@ class Elasticsearch(Backend):
             raise RuntimeError('Backend error getting response.') from e
 
         if result.status >= 400:
-            raise RuntimeError("Backend error. Got '{0:d} {1:s}' status from the backend.\
-            {2:s}".format(result.status, result.reason, result.text))
+            raise RuntimeError("Backend error. Got '{0:d} {1:s}' status from the backend.".format(result.status, result.reason))
 
         try:
             data = result.read().decode('ISO8859-1')

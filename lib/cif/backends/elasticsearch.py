@@ -64,7 +64,7 @@ class Elasticsearch(Backend):
         :raises: LookupError
         :raises: RuntimeError
         """
-        query = self._build_search_string(params)
+        query = self._build_search_string(params, count_only=count_only)
 
         if start is not None:
             query["from"] = start
@@ -341,7 +341,7 @@ class Elasticsearch(Backend):
         return data
 
     @staticmethod
-    def _build_search_string(params):
+    def _build_search_string(params, count_only=False):
         """Builds an ElasticSearch compatible search string
 
         :param dict params: Parameters to use for a search
@@ -388,6 +388,8 @@ class Elasticsearch(Backend):
                 a.append({"range": {param: {"gte": value}}})
         if len(neg):
             a.append({"not": {"filter": {"and": neg}}})
+        if count_only:
+            return {"query": {"filtered": {"filter": {"and": a}}}}
         return {"query": {"filtered": {"filter": {"and": a}}}, "sort": [{'@timestamp': {"order": "desc"}}]}
 
     def uninstall(self):

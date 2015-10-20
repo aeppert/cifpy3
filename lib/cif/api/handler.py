@@ -140,10 +140,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 self.send_header('Content-Length', count)
                 self.end_headers()
             except LookupError as e:
+                self.server.logging.exception('404 Not Found')
                 self.send_error(404, 'Not Found', str(e))
             except Exception as e:
+                self.server.logging.exception('500 Internal Server Error')
                 self.send_error(500, 'Internal Server Error', str(e))
-                self.server.logging.exception('Exception while GET')
         else:
             self.send_bad_request()
         return

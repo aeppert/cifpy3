@@ -111,7 +111,7 @@ def do_request():
         elif response.status_code == 400:
             raise RuntimeError("Invalid Query: {0}".format(response.text))
             
-        task.task_done()
+        request_queue.task_done()
 
 
 # Make a HEAD request to get the count of observables
@@ -120,7 +120,6 @@ try:
 except requests.exceptions.ConnectionError as e:
     sys.stderr.write("[ERROR] Could not make request to CIF Server: {0}\n".format(e))
     sys.exit(1)
-print(response.status_code)
 observable_count = 0
 if response.status_code == 200:
     observable_count = int(response.headers['content-length'])

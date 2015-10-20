@@ -215,8 +215,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     self.wfile.write(bytes(json.dumps(observables[-1].todict()), 'ISO8859-1'))
                 self.wfile.write(bytes(']', 'ISO8859-1'))
             except LookupError as e:
+                self.server.logging.exception("404 Not Found")
                 self.send_error(404, 'Not Found', str(e))
             except Exception as e:
+                self.server.logging.exception("500 Internal Server Error")
                 self.send_error(500, 'Internal Server Error', str(e))
                 self.server.logging.exception('Exception while GET')
 

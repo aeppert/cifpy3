@@ -13,3 +13,4 @@ feeds:
     remote: http://1d4.us/archive/ssh-today.txt
     application: ssh
     portlist: 22
+    interval: daily

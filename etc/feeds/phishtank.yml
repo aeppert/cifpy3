@@ -3,6 +3,7 @@ defaults:
   provider: phishtank.com
   tlp: green
   altid_tlp: white
+  interval: daily
   application:
     - http
     - https

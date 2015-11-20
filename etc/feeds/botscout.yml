@@ -6,6 +6,7 @@ defaults:
   provider: botscout.com
   remote: http://botscout.com/last_caught_cache.htm
   tags: botnet
+  interval: hourly
 
 feeds:
   bots:

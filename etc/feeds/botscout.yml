@@ -10,10 +10,11 @@ defaults:
 
 feeds:
   bots:
+    node: XmostRecent
     map:
       - Bot Name
       - Bot Email
-      - Bot Ip
+      - Bot IP
       - From
     values:
       - description

@@ -5,6 +5,7 @@ import multiprocessing
 import time
 
 import schedule
+import setproctitle
 
 import cif
 
@@ -50,6 +51,10 @@ class Feeder(multiprocessing.Process):
                 
         
     def run(self):
+        try:
+            setproctitle.setproctitle('[CIF-SERVER] - Feeder')
+        except:
+            pass
         while True:
             schedule.run_pending()
             time.sleep(1)

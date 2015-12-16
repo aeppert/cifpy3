@@ -5,6 +5,8 @@ import threading
 import time
 import queue
 
+import setproctitle
+
 import cif
 
 tasks = multiprocessing.Queue(262144)
@@ -107,7 +109,10 @@ class Process(multiprocessing.Process):
         the backend lock.
 
         """
-
+        try:
+            setproctitle.setproctitle('[CIF-SERVER] - Worker #{0}'.format(self.name))
+        except:
+            pass
         self.logging.info("Starting")
 
         backend = __import__("cif.backends.{0:s}".format(cif.options.storage.lower()),

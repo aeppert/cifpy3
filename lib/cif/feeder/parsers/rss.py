@@ -19,7 +19,7 @@ class Rss(Parser):
                 self.parsing_details['values'].append(value)
         self.valuecount = len(self.parsing_details['values'])
     
-    def cleanup():
+    def cleanup(self):
         # Feedparser has a memory leak in it. 
         del feedparser
         

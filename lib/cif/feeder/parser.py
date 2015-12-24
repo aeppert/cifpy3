@@ -116,5 +116,5 @@ class Parser(object):
 
         return observable
     
-    def cleanup():
+    def cleanup(self):
         pass

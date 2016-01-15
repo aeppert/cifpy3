@@ -115,6 +115,3 @@ class Parser(object):
             self.new_journal[meta['observable']] = self.journal[meta['observable']]
 
         return observable
-    
-    def cleanup(self):
-        pass

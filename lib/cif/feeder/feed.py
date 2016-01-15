@@ -159,15 +159,18 @@ class Feed(object):
 
         self.logging.debug("Creating Parser for feed {0}".format(feed_parsing_details['remote']))
         self.parser = Parser(parsing_details=feed_parsing_details, basemeta=feed_meta, file=file_to_parse)
-
-        while self.parser.parsing:
-            observables = self.parser.parsefile(2000)
-            if len(observables) > 0:
-                self.logging.debug("Feed '{0}' is sending {1} new objects to be processed".format(
-                    feed_parsing_details['remote'], len(observables))
-                )
-                for observable in observables:
-                    tasks.put(copy.deepcopy(observable))
-        self.parser.cleanup()
+        
+        child_pid = os.fork()
+        if child_pid == 0:
+            while self.parser.parsing:
+                observables = self.parser.parsefile(2000)
+                if len(observables) > 0:
+                    self.logging.debug("Feed '{0}' is sending {1} new objects to be processed".format(
+                        feed_parsing_details['remote'], len(observables))
+                    )
+                    for observable in observables:
+                        tasks.put(copy.deepcopy(observable))
+            os.exit(0)
+        os.waitpid(child_pid, 0)
         file_to_parse.close()
         self.logging.debug("Finished Parsing feed {0}".format(feed_parsing_details['remote']))

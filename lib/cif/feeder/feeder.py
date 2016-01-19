@@ -14,10 +14,11 @@ __author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 
 class FeedReloadSignaler(watchdog.events.FileSystemEventHandler):
+
     def __init__(self):
         watchdog.events.FileSystemEventHandler.__init__(self)
         self.logging = cif.logging.getLogger('FEEDRELOAD')
-        self.do_reload = False
+        self._do_reload = False
 
     def dispatch(self, event):
         self.logging.debug("Got {0} event for '{1}'.".format(event.event_type, event.src_path))
@@ -35,10 +36,16 @@ class FeedReloadSignaler(watchdog.events.FileSystemEventHandler):
             return
 
         self.logging.debug("Signaling reload due to {0} event for '{1}'.".format(event.event_type, event.src_path))
-        self.do_reload = True
+        self._do_reload = True
 
-    def reset(self):
-        self.do_reload = False
+    def do_reset(self):
+        self._do_reload = False
+
+    def should_reload(self):
+        return self._do_reload
+
+    def force_reload(self):
+        self._do_reload = True
 
 
 
@@ -48,6 +55,7 @@ class Feeder(multiprocessing.Process):
         multiprocessing.Process.__init__(self)
         self.logging = cif.logging.getLogger('FEEDER')
         self.reloader = FeedReloadSignaler()
+        self.reloader.force_reload()
 
         # Create our watchdog to signal for reloading Feeds
         self.watchdog = watchdog.observers.Observer()
@@ -150,9 +158,10 @@ class Feeder(multiprocessing.Process):
 
         # Enter a loop for scheduled events / detecting changes
         while True:
+
             schedule.run_pending()
-            if self.reloader.do_reload:
+            if self.reloader.should_reload():
                 self._do_reload()
-                self.reloader.reset()
+                self.reloader.do_reset()
 
             time.sleep(1)

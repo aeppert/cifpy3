@@ -27,7 +27,7 @@ class FeedReloadSignaler(watchdog.events.FileSystemEventHandler):
             return
 
         # Don't do anything unless it ends in .yml
-        if not event.src_path.ends('.yml'):
+        if not event.src_path.endswith('.yml'):
             return
 
         # Don't do anything if it starts with a .

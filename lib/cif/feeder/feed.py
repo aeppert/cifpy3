@@ -136,5 +136,6 @@ class Feed(multiprocessing.Process):
                 )
                 for observable in observables:
                     tasks.put(copy.deepcopy(observable))
+
         file_to_parse.close()
         self.logging.debug("Finished Parsing feed {0}".format(feed_parsing_details['remote']))

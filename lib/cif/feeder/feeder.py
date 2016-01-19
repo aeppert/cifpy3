@@ -3,6 +3,7 @@ import os
 import setproctitle
 import time
 import watchdog.observers
+import watchdog.events
 import yaml
 
 import schedule
@@ -12,19 +13,13 @@ import cif
 __author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 
-class Feeder(multiprocessing.Process):
+class FeedReloadSignaler(watchdog.events.FileSystemEventHandler):
     def __init__(self):
-        # Initialize basics
-        multiprocessing.Process.__init__(self)
-        self.logging = cif.logging.getLogger('FEEDER')
-        self._reload = True
+        watchdog.events.FileSystemEventHandler.__init__(self)
+        self.logging = cif.logging.getLogger('FEEDRELOAD')
+        self.do_reload = False
 
-        # Create our watchdog to signal for reloading Feeds
-        self.watchdog = watchdog.observers.Observer()
-        self.watchdog.schedule(self._signal_reload, cif.options.feed_directory, recursive=True)
-        self.watchdog.start()
-
-    def _signal_reload(self, event):
+    def dispatch(self, event):
         self.logging.debug("Got {0} event for '{1}'.".format(event.event_type, event.src_path))
 
         # Don't do anything for directory changes
@@ -40,7 +35,24 @@ class Feeder(multiprocessing.Process):
             return
 
         self.logging.debug("Signaling reload due to {0} event for '{1}'.".format(event.event_type, event.src_path))
-        self._reload = True
+        self.do_reload = True
+
+    def reset(self):
+        self.do_reload = False
+
+
+
+class Feeder(multiprocessing.Process):
+    def __init__(self):
+        # Initialize basics
+        multiprocessing.Process.__init__(self)
+        self.logging = cif.logging.getLogger('FEEDER')
+        self.reloader = FeedReloadSignaler()
+
+        # Create our watchdog to signal for reloading Feeds
+        self.watchdog = watchdog.observers.Observer()
+        self.watchdog.schedule(self.reloader, cif.options.feed_directory, recursive=True)
+        self.watchdog.start()
 
     def _do_reload(self):
         schedule.clear()
@@ -139,8 +151,8 @@ class Feeder(multiprocessing.Process):
         # Enter a loop for scheduled events / detecting changes
         while True:
             schedule.run_pending()
-            if self._reload:
+            if self.reloader.do_reload:
                 self._do_reload()
-                self._reload = False
+                self.reloader.reset()
 
             time.sleep(1)

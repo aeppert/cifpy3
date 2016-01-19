@@ -97,7 +97,7 @@ class Feeder(multiprocessing.Process):
 
     def _run_feed(self, feed_file, feed_name):
         process = cif.feeder.Feed(feed_config=self.feeds[feed_file], feed_name=feed_name)
-        process.run()
+        process.start()
         process.join()
 
     def _load_feed(self, feed_file):

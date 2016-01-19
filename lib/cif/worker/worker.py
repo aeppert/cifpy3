@@ -28,9 +28,10 @@ class Thread(threading.Thread):
         self.logging.debug("Booted")
         while True:
             observable = self.queue.get()
-            self.logging.debug("Got {0} from local queue: {1}".format(repr(observable), observable.observable))
             if observable is None:
+                self.logging.debug("Got Poison pill. Shutting down.")
                 break
+            self.logging.debug("Got {0} from local queue: {1}".format(repr(observable), observable.observable))
             self.logging.debug("Thread Loop: Got observable")
 
             for name, meta in cif.worker.meta.meta.items():

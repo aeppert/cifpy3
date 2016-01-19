@@ -170,7 +170,7 @@ class Feed(object):
                     )
                     for observable in observables:
                         tasks.put(copy.deepcopy(observable))
-            sys.exit(0)
+            os._exit(0)
         os.waitpid(child_pid, 0)
         file_to_parse.close()
         self.logging.debug("Finished Parsing feed {0}".format(feed_parsing_details['remote']))

@@ -1,67 +1,35 @@
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
 import os
 import datetime
 import gzip
 import tempfile
 import zipfile
 import copy
+import multiprocessing
 
-import yaml
 import requests
 
 import cif
 from .parser import Parser
 from ..worker import tasks
 
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
 
-class Feed(object):
-    def __init__(self, feed_file):
-        self.feed_file = feed_file
-        self.feed_config = {}
-        self.parser = None
-        self.logging = cif.logging.getLogger('FEED')
 
-        try:
-            self.logging.debug("Opening Feed file for parsing")
-            with open(self.feed_file, 'r') as stream:
-                self.logging.debug("Parsing feed file")
-                feed_config = yaml.load(stream)
-        except IOError as e:
-            self.logging.exception("Could not parse feed file {0}: {1}".format(self.feed_file), e)
-            return
-
-        if "feeds" not in feed_config.keys():
-            self.logging.info("No feeds configured inside of {0}. Moving on to next file.".format(self.feed_file))
-            return
-
-        if "parser" in feed_config.keys():
-            for key, value in feed_config["feeds"].items():
-                if "parser" not in feed_config["feeds"][key].keys():
-                    feed_config["feeds"][key]["parser"] = feed_config["parser"]
-
-        if "defaults" in feed_config.keys():
-            for key, value in feed_config["defaults"].items():
-                for k, v in feed_config["feeds"].items():
-                    if key not in feed_config["feeds"][k].keys():
-                        feed_config["feeds"][k][key] = value
-
+class Feed(multiprocessing.Process):
+    def __init__(self, feed_config, feed_name):
+        multiprocessing.Process.__init__(self)
+        self.feed_name = feed_name
         self.feed_config = feed_config
-
-    def processall(self):
-        if "feeds" not in self.feed_config.keys():
-            return
-        for feed_name, feed in self.feed_config["feeds"].items():
-            self.process(self, feed_name)
+        self.logging = cif.logging.getLogger('FEED')
             
-    def process(self, feed_name):
+    def run(self):
         """Retrieves the feed, passes it to a parser, and then passes parsed observables to the workers
 
         :return:
         """
         if "feeds" not in self.feed_config.keys():
             return
-        if feed_name not in self.feed_config['feeds']:
+        if self.feed_name not in self.feed_config['feeds']:
             return
         
         # These are fields that are used for control when parsing and should not be passed down to the observables
@@ -69,11 +37,11 @@ class Feed(object):
                            'username', 'password', 'method', 'start', 'end', 'interval']
 
         # Pull out parsing details for feeds from defined meta
-        feed_parsing_details = dict((name, self.feed_config["feeds"][feed_name][name]) for name in fields_to_strip if name in self.feed_config["feeds"][feed_name].keys())
-        feed_parsing_details['feed_name'] = feed_name
+        feed_parsing_details = dict((name, self.feed_config["feeds"][self.feed_name][name]) for name in fields_to_strip if name in self.feed_config["feeds"][self.feed_name].keys())
+        feed_parsing_details['feed_name'] = self.feed_name
 
         # Exclude control fields from defined meta for created observables
-        feed_meta = dict((name, self.feed_config["feeds"][feed_name][name]) for name in self.feed_config["feeds"][feed_name].keys() if name not in fields_to_strip)
+        feed_meta = dict((name, self.feed_config["feeds"][self.feed_name][name]) for name in self.feed_config["feeds"][self.feed_name].keys() if name not in fields_to_strip)
 
         if "method" not in feed_parsing_details.keys():
             feed_parsing_details["method"] = "GET"
@@ -87,7 +55,7 @@ class Feed(object):
             feed_parsing_details["values"] = [feed_parsing_details["values"]]
 
         feed_parsing_details["journal"] = "{0}/{1}-{2}-{3}-journal.pickle".format(
-            cif.CACHEDIR, os.path.basename(self.feed_file.lower()), feed_name.lower(),
+            cif.CACHEDIR, os.path.basename(self.feed_config['filename'].lower()), self.feed_name.lower(),
             datetime.datetime.utcnow().strftime("%Y-%m-%d")
         )
         self.logging.debug("Built Journal Path: {0}".format(feed_parsing_details['journal']))
@@ -158,16 +126,15 @@ class Feed(object):
         temp_bin.close()
 
         self.logging.debug("Creating Parser for feed {0}".format(feed_parsing_details['remote']))
-        self.parser = Parser(parsing_details=feed_parsing_details, basemeta=feed_meta, file=file_to_parse)
+        parser = Parser(parsing_details=feed_parsing_details, basemeta=feed_meta, file=file_to_parse)
 
-        while self.parser.parsing:
-            observables = self.parser.parsefile(2000)
+        while parser.parsing:
+            observables = parser.parsefile(2000)
             if len(observables) > 0:
                 self.logging.debug("Feed '{0}' is sending {1} new objects to be processed".format(
                     feed_parsing_details['remote'], len(observables))
                 )
                 for observable in observables:
                     tasks.put(copy.deepcopy(observable))
-        self.parser.cleanup()
         file_to_parse.close()
         self.logging.debug("Finished Parsing feed {0}".format(feed_parsing_details['remote']))

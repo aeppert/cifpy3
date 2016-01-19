@@ -1,10 +1,11 @@
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
 import copy
-import pickle
 import os
+import pickle
 import re
+
 import cif
+
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 
 class Parser(object):
@@ -115,6 +116,3 @@ class Parser(object):
             self.new_journal[meta['observable']] = self.journal[meta['observable']]
 
         return observable
-    
-    def cleanup():
-        pass

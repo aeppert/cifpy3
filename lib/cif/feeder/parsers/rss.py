@@ -1,8 +1,8 @@
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
 from ..parser import Parser
 import feedparser
 import re
+
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 
 class Rss(Parser):
@@ -18,10 +18,6 @@ class Rss(Parser):
             for value in pattern['values']:
                 self.parsing_details['values'].append(value)
         self.valuecount = len(self.parsing_details['values'])
-    
-    def cleanup():
-        # Feedparser has a memory leak in it. 
-        del feedparser
         
     def parsefile(self, max_objects=1000):
         """Parse file provided by self.file`. Return `max_objects` at a time. This is repetitively called

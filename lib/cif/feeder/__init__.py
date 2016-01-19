@@ -4,3 +4,5 @@ from .feeder import Feeder
 from .feed import Feed
 from .parser import Parser
 from . import parsers
+
+do_reload = False

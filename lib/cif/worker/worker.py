@@ -85,7 +85,7 @@ class QueueManager(threading.Thread):
             if observable is None:
                 self.logging.debug("Manager Got pill. Passing to threads.")
                 for i in range(1, cif.options.threads+1):
-                    self.logging.error("Mudering my threads")
+                    self.logging.debug("Distributed pill to Thread #{0}".format(i))
                     self.destination.put(None)
                 self.die = True
                 break

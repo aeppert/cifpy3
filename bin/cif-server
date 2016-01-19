@@ -149,7 +149,6 @@ while True:
             if feeder is not None:
                 logger.error("Monitoring Loop: feeder died. Restarting.")
             feeder = cif.feeder.Feeder()
-            feeder.daemon = 1
             feeder.start()
 
     logger.debug("Monitoring Loop: Sleeping")

@@ -141,5 +141,6 @@ class Feeder(multiprocessing.Process):
             schedule.run_pending()
             if self._reload:
                 self._do_reload()
+                self._reload = False
 
             time.sleep(1)

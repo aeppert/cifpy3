@@ -29,7 +29,7 @@ class Thread(threading.Thread):
         while True:
             observable = self.queue.get()
             if observable is None:
-                self.logging.debug("Got Poison pill. Shutting down.")
+                self.logging.debug("Thread got pill. Shutting down.")
                 break
             self.logging.debug("Got {0} from local queue: {1}".format(repr(observable), observable.observable))
             self.logging.debug("Thread Loop: Got observable")
@@ -82,14 +82,15 @@ class QueueManager(threading.Thread):
         while True:
             self.logging.debug("Waiting for item from global queue: {0}".format(repr(self.source)))
             observable = self.source.get()
-            self.logging.debug("Got {0} from global queue: {1}".format(repr(observable), observable.observable))
             if observable is None:
+                self.logging.debug("Manager Got pill. Passing to threads.")
                 for i in range(1, cif.options.threads+1):
                     self.logging.error("Mudering my threads")
                     self.destination.put(None)
                 self.die = True
                 break
             else:
+                self.logging.debug("Got {0} from global queue: {1}".format(repr(observable), observable.observable))
                 self.logging.debug("Put {0} into local queue: {1}".format(repr(observable), observable.observable))
                 self.destination.put(observable)
 

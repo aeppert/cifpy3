@@ -142,7 +142,7 @@ class Feeder(multiprocessing.Process):
     def run(self):
         # Set our process title, we don't care if it fails
         try:
-            setproctitle.setproctitle('[CIF-SERVER] - Feeder')
+            setproctitle.setproctitle('CIF-SERVER (Feeder)')
         except:
             pass
 

@@ -144,14 +144,21 @@ class Process(multiprocessing.Process):
         self.logging.info("Entering worker loop")
         while True:
             if queuemanager is None or not queuemanager.is_alive():
-                # Check to see if the queue manager got a poison pill. We don't manage the queue directly so we trust
-                #   the queue manager to see if it got one.
+                # Check to see if we're recycling this thread
                 if queuemanager is not None and self.cycles_remaining < 1:
                     self.recycle = True
+                    # Join the threads
                     for i in range(1, cif.options.threads+1):
                         if i in self.threads and self.threads[i] is not None:
                             self.threads[i].join()
+                    # Join the queue manager
+                    queuemanager.join()
+                    # Disconnect from the backend
+                    self.backend.disconnect()
+                    # Bail out
                     break
+                # Check to see if the queue manager got a poison pill. We don't manage the queue directly so we trust
+                #   the queue manager to see if it got one.
                 if queuemanager is not None and queuemanager.die:
                     break
                 queuemanager = QueueManager(self.name, tasks, self.queue)

@@ -73,6 +73,7 @@ class QueueManager(threading.Thread):
         self.worker = worker
         self.die = False
         self.logging = cif.logging.getLogger("Manager #{0}".format(worker))
+        self.cycles_remaining = 10000000
 
     def run(self):
         """Runs in an infinite loop taking any tasks from the main queue and distributing it to the workers. First one
@@ -83,16 +84,24 @@ class QueueManager(threading.Thread):
             self.logging.debug("Waiting for item from global queue: {0}".format(repr(self.source)))
             observable = self.source.get()
             if observable is None:
-                self.logging.debug("Manager Got pill. Passing to threads.")
-                for i in range(1, cif.options.threads+1):
-                    self.logging.debug("Distributed pill to Thread #{0}".format(i))
-                    self.destination.put(None)
-                self.die = True
+                self.kill_children()
                 break
             else:
                 self.logging.debug("Got {0} from global queue: {1}".format(repr(observable), observable.observable))
                 self.logging.debug("Put {0} into local queue: {1}".format(repr(observable), observable.observable))
                 self.destination.put(observable)
+                self.cycles_remaining -= 1
+                if self.cycles_remaining < 1:
+                    self.logging.debuging("Triggering Recycle")
+                    self.kill_children()
+                    break
+                
+    def kill_children(self):
+        self.logging.debug("Manager Got pill. Passing to threads.")
+        for i in range(1, cif.options.threads+1):
+            self.logging.debug("Distributed pill to Thread #{0}".format(i))
+            self.destination.put(None)
+        self.die = True
 
 
 class Process(multiprocessing.Process):
@@ -104,7 +113,8 @@ class Process(multiprocessing.Process):
         self.logging = cif.logging.getLogger("worker #{0}".format(name))
         self.queue = multiprocessing.Queue(cif.options.threads*2)
         self.threads = {}
-
+        self.recycle = False
+    
     def run(self):
         """Connects to the backend service, spawns and threads off into worker threads that hadnle each observable. One
         backend service connection is shared per thread however each connection *is* automatically thread safe due to
@@ -136,6 +146,12 @@ class Process(multiprocessing.Process):
             if queuemanager is None or not queuemanager.is_alive():
                 # Check to see if the queue manager got a poison pill. We don't manage the queue directly so we trust
                 #   the queue manager to see if it got one.
+                if queuemanager is not None and self.cycles_remaining < 1:
+                    self.recycle = True
+                    for i in range(1, cif.options.threads+1):
+                        if i in self.threads and self.threads[i] is not None:
+                            self.threads[i].join()
+                    break
                 if queuemanager is not None and queuemanager.die:
                     break
                 queuemanager = QueueManager(self.name, tasks, self.queue)

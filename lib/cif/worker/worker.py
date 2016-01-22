@@ -122,7 +122,7 @@ class Process(multiprocessing.Process):
 
         """
         try:
-            setproctitle.setproctitle('[CIF-SERVER] - Worker #{0}'.format(self.name))
+            setproctitle.setproctitle('CIF-SERVER (Worker #{0})'.format(self.name))
         except:
             pass
         self.logging.info("Starting")

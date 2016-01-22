@@ -19,7 +19,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         
     def connect_to_backend(self):
         try:
-            setproctitle.setproctitle('[CIF-SERVER] - API Handler - {0} {1}'.format(self.command, self.path))
+            setproctitle.setproctitle('CIF-SERVER (API Handle, {0} {1})'.format(self.command, self.path))
         except:
             pass
         # Based on the startup options for cif-server, let's get the backend + instantiate the class from that module

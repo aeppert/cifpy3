@@ -25,7 +25,7 @@ class Server(multiprocessing.Process):
 
     def run(self):
         try:
-            setproctitle.setproctitle('[CIF-SERVER] - API Server')
+            setproctitle.setproctitle('CIF-SERVER (API Server)')
         except:
             pass
         self.logging.info("Starting api Server")

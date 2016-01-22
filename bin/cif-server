@@ -120,7 +120,7 @@ def sigint_handler(signum, frame):
     sys.exit(0)
 signal.signal(signal.SIGINT, sigint_handler)
 try:
-    setproctitle.setproctitle('[CIF-SERVER] - Controller')
+    setproctitle.setproctitle('CIF-SERVER (Controller)')
 except:
     pass
 logger.info("Monitoring Loop: Entering")
@@ -130,8 +130,8 @@ while True:
     for i in range(1, cif.options.workers+1):
         logger.info("Monitoring Loop: Checking worker {0}".format(i))
         if i not in workers or workers[i] is None or not workers[i].is_alive():
-            if i in workers and workers[i] is not None:
-                logger.error("Monitoring Loop: worker #{0} died or not started. Restarting.".format(i))
+            if i in workers and workers[i] is not None and not workers[i].recycle:
+                  logger.error("Monitoring Loop: worker #{0} died or not started. Restarting.".format(i))
             workers[i] = cif.worker.Process(str(i))
             workers[i].daemon = 1
             workers[i].start()

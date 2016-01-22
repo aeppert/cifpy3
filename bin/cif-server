@@ -132,6 +132,7 @@ while True:
         if i not in workers or workers[i] is None or not workers[i].is_alive():
             if i in workers and workers[i] is not None and not workers[i].recycle:
                   logger.error("Monitoring Loop: worker #{0} died or not started. Restarting.".format(i))
+            workers[i].join()
             workers[i] = cif.worker.Process(str(i))
             workers[i].daemon = 1
             workers[i].start()

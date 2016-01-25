@@ -73,7 +73,7 @@ class Feed(multiprocessing.Process):
             }
             try:
                 response = requests.request(feed_parsing_details["method"], feed_parsing_details["remote"],
-                                            proxies=cif.proxies, stream=True, headers=headers, verify=False
+                                            proxies=cif.proxies, stream=True, headers=headers, verify=False, timeout=300
                                             )
             except:
                 self.logging.exception("Could not fetch remote url '{0}'".format(feed_parsing_details["remote"]))

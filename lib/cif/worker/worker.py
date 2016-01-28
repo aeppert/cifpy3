@@ -73,7 +73,7 @@ class QueueManager(threading.Thread):
         self.worker = worker
         self.die = False
         self.logging = cif.logging.getLogger("Manager #{0}".format(worker))
-        self.cycles_remaining = 10000000
+        self.cycles_remaining = 100000
 
     def run(self):
         """Runs in an infinite loop taking any tasks from the main queue and distributing it to the workers. First one
@@ -92,7 +92,7 @@ class QueueManager(threading.Thread):
                 self.destination.put(observable)
                 self.cycles_remaining -= 1
                 if self.cycles_remaining < 1:
-                    self.logging.debuging("Triggering Recycle")
+                    self.logging.debug("Triggering Recycle")
                     self.kill_children()
                     break
                 

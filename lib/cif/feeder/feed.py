@@ -1,16 +1,16 @@
 import os
+import json
 import datetime
 import gzip
 import tempfile
 import zipfile
-import copy
 import multiprocessing
 
+import pika
 import requests
 
 import cif
 from .parser import Parser
-from ..worker import tasks
 
 __author__ = 'James DeVincentis <james.d@hexhost.net>'
 
@@ -21,7 +21,10 @@ class Feed(multiprocessing.Process):
         self.feed_name = feed_name
         self.feed_config = feed_config
         self.logging = cif.logging.getLogger('FEED')
-            
+        self.logging.info("Setting up RabbitMQ Queues")
+        self.connection = pika.BlockingConnection(pika.ConnectionParameters(host=cif.options.mq_host, port=cif.options.mq_port))
+        self.channel = self.connection.channel()
+        self.channel.queue_declare(queue=cif.options.mq_work_queue_name, durable=True)
     def run(self):
         """Retrieves the feed, passes it to a parser, and then passes parsed observables to the workers
 
@@ -135,7 +138,15 @@ class Feed(multiprocessing.Process):
                     feed_parsing_details['remote'], len(observables))
                 )
                 for observable in observables:
-                    tasks.put(copy.deepcopy(observable))
+                    self.channel.basic_publish(
+                        exchange='',
+                        routing_key=cif.options.mq_work_queue_name,
+                        body=json.dumps(observable.todict()),
+                        properties=pika.BasicProperties(
+                                delivery_mode = 2, # make message persistent
+                        )
+                    )
 
         file_to_parse.close()
+        self.connection.close()
         self.logging.debug("Finished Parsing feed {0}".format(feed_parsing_details['remote']))

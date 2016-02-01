@@ -4,8 +4,8 @@ import re
 import urllib.parse
 import json
 import cgi
-import copy
 
+import pika
 import setproctitle
 
 import cif
@@ -347,10 +347,20 @@ class Handler(http.server.BaseHTTPRequestHandler):
             except Exception as e:
                 self.send_error(422, 'Could not process observable: {0}'.format(e))
                 return
-            self.server.logging.debug("Put {0} into global queue: {1}".format(repr(observable), repr(cif.worker.tasks)))
-            cif.worker.tasks.put(observable)
-            cif.worker.tasks.close()
-            cif.worker.tasks.join_thread()
+            # Send the observable to the backend
+            connection = pika.BlockingConnection(pika.ConnectionParameters(host=cif.options.mq_host, port=cif.options.mq_port))
+            channel = connection.channel()
+            channel.queue_declare(queue=cif.options.mq_work_queue_name, durable=True)
+            channel.basic_publish(
+                exchange='',
+                routing_key=cif.options.mq_work_queue_name,
+                body=json.dumps(observable.todict()),
+                properties=pika.BasicProperties(
+                        delivery_mode = 2, # make message persistent
+                )
+            )
+            connection.close()
+
             self.send_response(202)
             self.send_header('Location', '/observable/{0}'.format(observable.id))
             self.end_headers()

@@ -2,8 +2,6 @@
 #
 # cif Server - Listens and handles all data incoming/outgoing
 #
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
 import argparse
 import os
 import signal
@@ -12,7 +10,10 @@ import logging
 import sys
 import time
 
+import pika
 import setproctitle
+
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 # Append our local lib directory to the import paths
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'lib'))
@@ -30,13 +31,29 @@ cif.CACHEDIR = os.path.join(cif.APPDIR, 'cache')
 
 parser = argparse.ArgumentParser(description='Collective Intelligence Framework Server',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--workers', dest='workers', nargs='?', type=int, default=multiprocessing.cpu_count(),
-                    help='specify the number of workers to start')
-parser.add_argument('--threads-per-worker', dest='threads', nargs='?', type=int, default=30,
-                    help='specify the number of threads per worker')
 parser.add_argument('--logfile', dest='logfile', nargs='?', type=str, default=os.path.join(cif.LOGDIR, 'cif-server.log'))
 parser.add_argument('--loglevel', dest='loglevel', nargs='?', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
                    default='WARNING')
+
+group = parser.add_argument_group('Worker Options')
+group.add_argument('--workers-start', dest='workers_start', nargs='?', type=int, default=1,
+                    help='number of workers to start with')
+group.add_argument('--workers-max', dest='workers_max', nargs='?', type=int, default=multiprocessing.cpu_count(),
+                    help='maximum number of workers to run')
+group.add_argument('--worker-threads-start', dest='worker_threads_start', nargs='?', type=int, default=5,
+                    help='number of threads per worker to start')
+group.add_argument('--worker-threads-max', dest='worker_threads_max', nargs='?', type=int, default=30,
+                    help='maximum number of threads per worker')
+
+group = parser.add_argument_group('RabbitMQ Settings')
+group.add_argument('--mq-host', dest='mq_host', nargs='?', default='127.0.0.1',
+                   help='RabbitMQ Host Server IP')
+group.add_argument('--mq-port', dest='mq_port', nargs='?', type=int, deafult=5672, help='RabbitMQ Host Server Port')
+group.add_argument('--mq-work-queue-name', dest='mq_work_queue_name', nargs='?', default='cifpy3_worker_queue',
+                   help='RabbitMQ Worker Queue Name')
+group.add_argument('--mq-observable-exchange-name', dest='mq_observable_exchange_name', nargs='?', default='cifpy3_observables',
+                   help='RabbitMQ Observables Exchange Name')
+
 group = parser.add_argument_group('Server Options')
 group.add_argument('--listen', dest='host', nargs='?', type=str, default='0.0.0.0',
                    help='Host to listen on')
@@ -107,7 +124,7 @@ def sigint_handler(signum, frame):
     # noinspection PyBroadException
     try:
         logger.info("Killing Workers")
-        for worker in range(1, cif.options.workers+1):
+        for worker in range(1, cif.options.workers_start+1):
             cif.worker.tasks.put(None)
         logger.info("Killing api")
         api.terminate()
@@ -119,15 +136,21 @@ def sigint_handler(signum, frame):
     del frame
     sys.exit(0)
 signal.signal(signal.SIGINT, sigint_handler)
+
 try:
     setproctitle.setproctitle('CIF-SERVER (Controller)')
 except:
     pass
+logger.info("Setting up RabbitMQ Queues")
+connection = pika.BlockingConnection(pika.ConnectionParameters(host=cif.options.mq_host, port=cif.options.mq_port))
+channel = connection.channel()
+channel.queue_declare(queue=cif.options.mq_work_queue_name)
+channel.exchange_declare(exchange=cif.options.mq_observable_exchange_name, type='fanout')
+
 logger.info("Monitoring Loop: Entering")
 while True:
     logger.info("Monitoring Loop: Checking Workers")
-    logger.debug("Global Queue Size: {0}".format(cif.worker.tasks.qsize()))
-    for i in range(1, cif.options.workers+1):
+    for i in range(1, cif.options.workers_start+1):
         logger.info("Monitoring Loop: Checking worker {0}".format(i))
         if i not in workers or workers[i] is None or not workers[i].is_alive():
             if i in workers and workers[i] is not None and not workers[i].recycle:

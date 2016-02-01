@@ -4,4 +4,3 @@ from . import meta
 from . import plugins
 
 from .worker import Process
-from .worker import tasks

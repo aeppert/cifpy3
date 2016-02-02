@@ -35,30 +35,32 @@ parser.add_argument('--logfile', dest='logfile', nargs='?', type=str, default=os
 parser.add_argument('--loglevel', dest='loglevel', nargs='?', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
                    default='WARNING')
 
-group = parser.add_argument_group('Worker Options')
-group.add_argument('--workers-start', dest='workers_start', nargs='?', type=int, default=1,
-                    help='number of workers to start with')
+group = parser.add_argument_group(title='Worker Options', description='Customize Worker behavior')
+group.add_argument('--worker-disable', dest='worker_disable', action="store_true", help='disable workers')
+group.add_argument('--worker-start', dest='workers_start', nargs='?', type=int, default=1,
+                    help='number of workers to spawn at start')
 group.add_argument('--workers-max', dest='workers_max', nargs='?', type=int, default=multiprocessing.cpu_count(),
-                    help='maximum number of workers to run')
+                    help='maximum number of workers to during heavy load')
 group.add_argument('--worker-threads-start', dest='worker_threads_start', nargs='?', type=int, default=5,
-                    help='number of threads per worker to start')
+                    help='number of threads per worker to spawn at start')
 group.add_argument('--worker-threads-max', dest='worker_threads_max', nargs='?', type=int, default=30,
-                    help='maximum number of threads per worker')
+                    help='maximum number of threads per worker during heavy load')
 
-group = parser.add_argument_group('RabbitMQ Settings')
+group = parser.add_argument_group('AMQP Settings', description='AMQP 0-9-1 Host Protocol Settings')
 group.add_argument('--mq-host', dest='mq_host', nargs='?', default='127.0.0.1',
-                   help='RabbitMQ Host Server IP')
-group.add_argument('--mq-port', dest='mq_port', nargs='?', type=int, default=5672, help='RabbitMQ Host Server Port')
+                   help='host server IP')
+group.add_argument('--mq-port', dest='mq_port', nargs='?', type=int, default=5672, help='host server Port')
 group.add_argument('--mq-work-queue-name', dest='mq_work_queue_name', nargs='?', default='cifpy3_worker_queue',
                    help='RabbitMQ Worker Queue Name')
 group.add_argument('--mq-observable-exchange-name', dest='mq_observable_exchange_name', nargs='?', default='cifpy3_observables',
                    help='RabbitMQ Observables Exchange Name')
 
-group = parser.add_argument_group('Server Options')
-group.add_argument('--listen', dest='host', nargs='?', type=str, default='0.0.0.0',
+group = parser.add_argument_group('API Options', description='API Server behavior')
+group.add_argument('--api-disable', dest='api_disable', action="store_true", help='disable API')
+group.add_argument('--api-address', dest='host', nargs='?', type=str, default='0.0.0.0',
                    help='Host to listen on')
-group.add_argument('--port', dest='port', nargs='?', type=int, default=8080, help='Port to listen on')
-group.add_argument('--noauth', dest='noauth', action="store_true",
+group.add_argument('--api-port', dest='port', nargs='?', type=int, default=8080, help='Port to listen on')
+group.add_argument('--api-disable-auth', dest='noauth', action="store_true",
                    help='disable authentication (insecure: not recommended)')
 
 group = parser.add_argument_group('Storage Options')
@@ -67,13 +69,13 @@ group.add_argument('--storage-engine', dest='storage', nargs='?', type=str, defa
 group.add_argument('--storage-connection', dest='storage_uri', nargs='?', type=str,
                    default='http://127.0.0.1:9200', help='Connection string for connecting to the storage engine')
 
-group = parser.add_argument_group('Feed Options')
-group.add_argument('--feed-disable', dest='feed_disable', action="store_true", help='Disable Feeder program')
-group.add_argument('--feed-directory', dest='feed_directory', nargs='?', type=str,
+group = parser.add_argument_group('Feeder Options')
+group.add_argument('--feeder-disable', dest='feed_disable', action="store_true", help='Disable Feeder program')
+group.add_argument('--feeder-directory', dest='feed_directory', nargs='?', type=str,
                    default=os.path.join(cif.ETCDIR, 'feeds'), help='Read feed configurations from this directory')
-group.add_argument('--http-proxy', dest='feed_http_proxy', nargs='?', type=str,
+group.add_argument('--feeder-http-proxy', dest='feed_http_proxy', nargs='?', type=str,
                    help='HTTP Proxy for accessing feeds')
-group.add_argument('--https-proxy', dest='feed_https_proxy', nargs='?', type=str,
+group.add_argument('--feeder-https-proxy', dest='feed_https_proxy', nargs='?', type=str,
                    help='HTTPS Proxy for accessing feeds')
 
 # Notifications are not yet supported
@@ -149,26 +151,35 @@ channel.queue_declare(queue=cif.options.mq_work_queue_name, durable=True)
 channel.exchange_declare(exchange=cif.options.mq_observable_exchange_name, type='fanout')
 
 logger.info("Monitoring Loop: Entering")
-while True:
-    logger.info("Monitoring Loop: Checking Workers")
-    for i in range(1, cif.options.workers_start+1):
-        logger.info("Monitoring Loop: Checking worker {0}".format(i))
-        if i not in workers or workers[i] is None or not workers[i].is_alive():
-            if i in workers and workers[i] is not None and not workers[i].recycle:
-                  logger.error("Monitoring Loop: worker #{0} died or not started. Restarting.".format(i))
-            if i in workers and workers[i] is not None and workers[i].recycle:
-              workers[i].join()
-            workers[i] = cif.worker.Process(str(i))
-            workers[i].daemon = 1
-            workers[i].start()
 
-    cif.logging.info("Monitoring Loop: Checking api Server")
-    if api is None or not api.is_alive():
-        if api is not None:
-            logger.error("Monitoring Loop: api Server Died. Restarting.")
-        api = cif.api.Server()
-        api.daemon = 1
-        api.start()
+# If someone is dopey enough to do this...
+if cif.options.worker_disable and cif.options.api_disable and cif.options.feed_disable:
+    logger.error("Workers, API, and Feeder are disabled, exiting. https://youtu.be/m4OvQIGDg4I ")
+    sys.exit(0)
+
+while True:
+    if not cif.options.worker_disable:
+        logger.info("Monitoring Loop: Checking Workers")
+        for i in range(1, cif.options.workers_start+1):
+            logger.info("Monitoring Loop: Checking worker {0}".format(i))
+            if i not in workers or workers[i] is None or not workers[i].is_alive():
+                if i in workers and workers[i] is not None and not workers[i].recycle:
+                      logger.error("Monitoring Loop: worker #{0} died or not started. Restarting.".format(i))
+                if i in workers and workers[i] is not None and workers[i].recycle:
+                  workers[i].join()
+                workers[i] = cif.worker.Process(str(i))
+                workers[i].daemon = 1
+                workers[i].start()
+
+    if not cif.options.api_disable:
+        cif.logging.info("Monitoring Loop: Checking api Server")
+        if api is None or not api.is_alive():
+            if api is not None:
+                logger.error("Monitoring Loop: api Server Died. Restarting.")
+            api = cif.api.Server()
+            api.daemon = 1
+            api.start()
+
     if not cif.options.feed_disable:
         cif.logging.info("Monitoring Loop: Checking feeder")
         if feeder is None or not feeder.is_alive():

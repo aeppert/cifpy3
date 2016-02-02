@@ -21,8 +21,6 @@ class Thread(threading.Thread):
         self._channel = None
         self._closing = False
         self._consumer_tag = None
-        self.cycles_remaining = 100000
-        self.recycle = False
 
     def connect(self):
         return pika.SelectConnection(pika.ConnectionParameters(host=cif.options.mq_host, port=cif.options.mq_port),
@@ -110,7 +108,6 @@ class Thread(threading.Thread):
         self._connection.ioloop.start()
 
     def close_connection(self):
-        """This method closes the connection to RabbitMQ."""
         self._connection.close()
 
     def process(self, observable):
@@ -148,10 +145,6 @@ class Thread(threading.Thread):
         finally:
             # Make sure to release the lock even if we encounter but don't trap it.
             self.backendlock.release()
-        self.cycles_remaining -= 1
-        if self.cycles_remaining <= 0:
-            self.recycle = True
-            self.stop()
 
 
 class Process(multiprocessing.Process):

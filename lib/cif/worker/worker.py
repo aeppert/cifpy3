@@ -29,7 +29,7 @@ class Thread(threading.Thread):
                                      self.on_connection_open,
                                      stop_ioloop_on_close=False)
 
-    def on_connection_open(self):
+    def on_connection_open(self, unused_connection):
         self.add_on_connection_close_callback()
         self.open_channel()
 

@@ -67,7 +67,12 @@ class Feeder(multiprocessing.Process):
         for feed_file in feed_files:
             self.logging.info("Loading Feed File: {0}".format(feed_file))
 
-            self.feeds[feed_file] = self._load_feed(feed_file)
+            loaded = self._load_feed(feed_file)
+            if loaded is None:
+                self.logging.error("Feed File: '{0}' came back as None".format(feed_file))
+                continue
+
+            self.feeds[feed_file] = loaded
 
             self.logging.info("Scheduling Feed File:".format(feed_file))
 

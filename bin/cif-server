@@ -141,6 +141,7 @@ try:
     setproctitle.setproctitle('CIF-SERVER (Controller)')
 except:
     pass
+
 logger.info("Setting up RabbitMQ Queues")
 connection = pika.BlockingConnection(pika.ConnectionParameters(host=cif.options.mq_host, port=cif.options.mq_port))
 channel = connection.channel()

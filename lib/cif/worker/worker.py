@@ -70,9 +70,6 @@ class Thread(threading.Thread):
 
     def on_queue_declareok(self, method_frame):
         self._channel.basic_qos(prefetch_count=1)
-        self._channel.queue_bind(self.on_bindok, cif.options.mq_work_queue_name, '', cif.options.mq_work_queue_name)
-
-    def on_bindok(self, unused_frame):
         self.start_consuming()
 
     def start_consuming(self):

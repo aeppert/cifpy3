@@ -23,14 +23,18 @@ class Thread(threading.Thread):
         self._consumer_tag = None
 
     def connect(self):
-        return pika.SelectConnection(pika.ConnectionParameters(host=cif.options.mq_host, port=cif.options.mq_port),
-                                     self.on_connection_open,
+        return pika.SelectConnection(parameters=pika.ConnectionParameters(host=cif.options.mq_host, port=cif.options.mq_port),
+                                     on_open_callback=self.on_connection_open,
+                                     on_open_error_callback=self.on_connection_open_error,
                                      stop_ioloop_on_close=False)
 
     def on_connection_open(self, unused_connection):
         self.add_on_connection_close_callback()
         self.open_channel()
-
+        
+    def on_connection_open_error(self, unused_connection, error_message):
+        self.logging.warning("Could not connect to MQ Server. Pika Said: '{0}'".format(error_message))
+    
     def add_on_connection_close_callback(self):
         self._connection.add_on_close_callback(self.on_connection_closed)
 

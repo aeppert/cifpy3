@@ -145,7 +145,7 @@ except:
 logger.info("Setting up RabbitMQ Queues")
 connection = pika.BlockingConnection(pika.ConnectionParameters(host=cif.options.mq_host, port=cif.options.mq_port))
 channel = connection.channel()
-channel.queue_declare(queue=cif.options.mq_work_queue_name)
+channel.queue_declare(queue=cif.options.mq_work_queue_name, durable=True)
 channel.exchange_declare(exchange=cif.options.mq_observable_exchange_name, type='fanout')
 
 logger.info("Monitoring Loop: Entering")

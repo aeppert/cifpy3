@@ -66,7 +66,7 @@ class Thread(threading.Thread):
         self._connection.close()
 
     def setup_queue(self, queue_name):
-        self._channel.queue_declare(self.on_queue_declareok, queue_name)
+        self._channel.queue_declare(self.on_queue_declareok, queue=queue_name, durable=True)
 
     def on_queue_declareok(self, method_frame):
         self._channel.basic_qos(prefetch_count=1)

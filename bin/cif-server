@@ -48,7 +48,7 @@ group.add_argument('--worker-threads-max', dest='worker_threads_max', nargs='?',
 group = parser.add_argument_group('RabbitMQ Settings')
 group.add_argument('--mq-host', dest='mq_host', nargs='?', default='127.0.0.1',
                    help='RabbitMQ Host Server IP')
-group.add_argument('--mq-port', dest='mq_port', nargs='?', type=int, deafult=5672, help='RabbitMQ Host Server Port')
+group.add_argument('--mq-port', dest='mq_port', nargs='?', type=int, default=5672, help='RabbitMQ Host Server Port')
 group.add_argument('--mq-work-queue-name', dest='mq_work_queue_name', nargs='?', default='cifpy3_worker_queue',
                    help='RabbitMQ Worker Queue Name')
 group.add_argument('--mq-observable-exchange-name', dest='mq_observable_exchange_name', nargs='?', default='cifpy3_observables',

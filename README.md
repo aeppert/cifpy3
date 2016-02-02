@@ -27,13 +27,17 @@ Features
 ----------
 * Powered by Python 3.4+
 * Performance
-  * Ingest ~70-80 Observables per second per CPU core
-    * This equates to ingesting about 1M Observables in ~30 minutes using 8vCPUs
+  * Ingest ~50-60 Observables per second per CPU core
+    * This equates to ingesting about 800K Observables in ~35 minutes using 8vCPUs
   * Less than 250MB RAM per worker process
   * Configurable workers/threads count
     * Default: (1 Worker per CPU + 30 threads per /worker)
   * Faster Installation (only a few dependencies)
 * Features
+  * Completely Modular
+    * Can split Front-End API / Feed Parser / Workers from each other
+    * Run multiple worker servers if desired
+  * Uses RabbitMQ for queue management
   * Full REST API
   * Simple Architecture
   * Easy to read logs

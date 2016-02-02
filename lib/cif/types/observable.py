@@ -251,8 +251,9 @@ class Observable(Base):
                     self.otype = 'ipv6'
                 elif cif.types.is_binary(self.observable):
                     self.otype = 'binary'
-                pass
-        self._otype = value.lower()
+                return
+        if value is not None:
+            self._otype = value.lower()
 
     @property
     def reporttime(self):

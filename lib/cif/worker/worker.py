@@ -115,10 +115,10 @@ class Thread(threading.Thread):
 
     def process(self, observable):
         try:
-            observable = json.loads(observable)
+            observable = json.loads(observable.decode("utf-8"))
         except:
             self.logging.exception("Couldn't unserialize JSON object for processing")
-        pass
+            return
 
         # Fetch Meta
         for name, meta in cif.worker.meta.meta.items():

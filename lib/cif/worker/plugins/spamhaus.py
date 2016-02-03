@@ -3,7 +3,7 @@ import ipaddress
 
 import dns
 
-import cif
+import cif.types
 
 __author__ = 'James DeVincentis <james.d@hexhost.net>'
 

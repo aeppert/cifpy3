@@ -17,7 +17,7 @@ class Observable(Base):
         self._id = self._generate_random_hash(32)
         self._group = ['everyone']
         self._tlp = 'amber'
-        self._confidence = cif.CONFIDENCE_DEFAULT
+        self._confidence = 75
         self._tags = []
         self._description = None
         self._data = None

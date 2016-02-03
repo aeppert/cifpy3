@@ -2,7 +2,7 @@ import datetime
 import socket
 import urllib.parse
 
-import cif
+import cif.types
 
 __author__ = 'James DeVincentis <james.d@hexhost.net>'
 

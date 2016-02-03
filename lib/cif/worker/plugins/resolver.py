@@ -2,7 +2,7 @@ import datetime
 
 import dns.resolver
 
-import cif
+import cif.types
 
 __author__ = 'James DeVincentis <james.d@hexhost.net>'
 
@@ -21,7 +21,7 @@ def process(observable=None):
     if observable.otype != "fqdn":
         return None
 
-    if observable.confidence < cif.CONFIDENCE_MIN:
+    if observable.confidence < 25:
         return None
 
     newobservables = []

@@ -15,9 +15,20 @@ import requests
 import requests.exceptions
 import yaml
 
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
+
+# Append our local lib directory to the import paths
+sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'lib'))
+
 import cif
 
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
+# Setup Paths for global usage throughout the cif package
+cif.BINDIR = os.path.dirname(os.path.abspath(__file__))
+cif.APPDIR = os.path.dirname(cif.BINDIR)
+cif.LIBDIR = os.path.join(cif.APPDIR, 'lib')
+cif.ETCDIR = os.path.join(cif.APPDIR, 'etc')
+cif.LOGDIR = os.path.join(cif.APPDIR, 'log')
+cif.CACHEDIR = os.path.join(cif.APPDIR, 'cache')
 
 
 parser = argparse.ArgumentParser(description='Collective Intelligence Framework Client',

@@ -40,6 +40,7 @@ class Thread(threading.Thread):
         try:
             observable = cif.types.Observable(json.loads(body.decode("utf-8")))
         except:
+            channel.basic_nack(delivery_tag=method_frame.delivery_tag)
             self.logging.exception("Couldn't unserialize JSON object for processing")
             return
 
@@ -69,6 +70,8 @@ class Thread(threading.Thread):
         try:
             self.backend.observable_create(newobservables)
             channel.basic_ack(delivery_tag=method_frame.delivery_tag)
+        except:
+            channel.basic_nack(delivery_tag=method_frame.delivery_tag)
         finally:
             # Make sure to release the lock even if we encounter but don't trap it.
             self.backendlock.release()

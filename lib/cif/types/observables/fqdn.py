@@ -1,6 +1,6 @@
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
 from .address import Address
+
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 
 class Fqdn(Address):

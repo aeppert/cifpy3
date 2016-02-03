@@ -1,13 +1,12 @@
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
 import datetime
 
 import dns.resolver
 
-import cif
+import cif.types
+
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 
-# noinspection PyBroadException
 def process(observable=None):
     """Takes an observable and creates new observables from data relating to the specified observable
 
@@ -22,11 +21,11 @@ def process(observable=None):
     if observable.otype != "fqdn":
         return None
 
-    if observable.confidence < cif.CONFIDENCE_MIN:
+    if observable.confidence < 25:
         return None
 
     newobservables = []
-    confidence = observable._degrade_confidence()
+    confidence = cif.types.Observable.degrade_confidence(observable)
     tags = set(observable.tags)
     tags.add("rdata")
     types = ['A', 'NS', 'MX']
@@ -53,7 +52,7 @@ def process(observable=None):
             if confidence > 35:
                 confidence = 35
             else:
-                confidence = observable._degrade_confidence(c=35)
+                confidence = cif.types.Observable.degrade_confidence(observable, c=35)
             otype = "fqdn"
         elif record_type == "MX":
             newobservable = record_value.split(" ")[1]
@@ -63,7 +62,7 @@ def process(observable=None):
             if confidence > 35:
                 confidence = 35
             else:
-                confidence = observable._degrade_confidence(c=35)
+                confidence = cif.types.Observable.degrade_confidence(observable, c=35)
             otype = "fqdn"
         else:
             continue
@@ -73,7 +72,7 @@ def process(observable=None):
 
         newobservables.append(
             cif.types.Observable({
-                "otype" : otype,
+                "otype": otype,
                 "related": observable.id,
                 "observable": newobservable,
                 "confidence": confidence,

@@ -1,9 +1,9 @@
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
 import hashlib
 
-from ..observable import Observable
 from ..basics import *
+from ..observable import Observable
+
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 
 class Email(Observable):
@@ -23,7 +23,7 @@ class Email(Observable):
         if self._validation and value is None and self.observable is not None:
             self.htype = 'sha256'
             tmp = hashlib.sha256()
-            tmp.update(self.observable)
+            tmp.update(self.observable.encode('UTF-8'))
             value = tmp.hexdigest()
         self._hash = value
 

@@ -1,13 +1,12 @@
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
 import http.server
-import socketserver
 import multiprocessing
+import setproctitle
+import socketserver
 import sys
 
-import setproctitle
-
 import cif
+
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 
 class HTTPServer(socketserver.ForkingMixIn, http.server.HTTPServer):

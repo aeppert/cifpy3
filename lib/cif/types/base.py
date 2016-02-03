@@ -1,7 +1,7 @@
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
 import hashlib
 import os
+
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 
 class Base(object):

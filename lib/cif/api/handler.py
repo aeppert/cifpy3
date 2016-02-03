@@ -1,22 +1,24 @@
+import cgi
 import datetime
 import http.server
-import re
-import urllib.parse
 import json
-import cgi
-import copy
-
+import re
 import setproctitle
+import urllib.parse
+
+import pika
 
 import cif
 
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
+
 
 class Handler(http.server.BaseHTTPRequestHandler):
-
     def __init__(self, *args):
+        self.backend = None
         self.token = None
         http.server.BaseHTTPRequestHandler.__init__(self, *args)
-        
+
     def connect_to_backend(self):
         try:
             setproctitle.setproctitle('CIF-SERVER (API Handle, {0} {1})'.format(self.command, self.path))
@@ -39,23 +41,38 @@ class Handler(http.server.BaseHTTPRequestHandler):
         :returns: True on success, False on failure
         :rtype: bool
         """
-        self.server.logging.debug("Checking Authentication for {0}:{1}".format(self.client_address[0], self.client_address[1]))
+        self.server.logging.debug("Checking Authentication for {0}:{1}".format(
+            self.client_address[0],
+            self.client_address[1]
+        ))
         # If Authentication was disabled via the command line bypass the auth checks
         if "noauth" in cif.options and cif.options.noauth:
-            self.server.logging.debug("Noauth is enabled. Returning TRUE for for {0}:{1}".format(self.client_address[0], self.client_address[1]))
+            self.server.logging.debug("Noauth is enabled. Returning TRUE for for {0}:{1}".format(
+                self.client_address[0],
+                self.client_address[1]
+            ))
             return True
 
         if "Authorization" not in self.headers:
-            self.server.logging.debug("No Authorization header sent for {0}:{1}".format(self.client_address[0], self.client_address[1]))
+            self.server.logging.debug("No Authorization header sent for {0}:{1}".format(self.client_address[0],
+                                                                                        self.client_address[1]
+                                                                                        ))
             self.send_error(401, 'Not Authorized', 'No Token sent. It must be sent using the Authorization header.')
             return False
 
         if self.token is None:
-            self.server.logging.debug("Looking up Token '{0}' for {1}:{2}".format(self.headers['Authorization'], self.client_address[0], self.client_address[1]))
+            self.server.logging.debug("Looking up Token '{0}' for {1}:{2}".format(self.headers['Authorization'],
+                                                                                  self.client_address[0],
+                                                                                  self.client_address[1]
+                                                                                  ))
             try:
                 self.token = self.backend.token_get(self.headers['Authorization'])
             except LookupError as e:
-                self.server.logging.warning("Unauthorized token '{0}' attempting to be used by {1}:{2}".format(self.headers['Authorization'], self.client_address[0], self.client_address[1]))
+                self.server.logging.warning("Unauthorized token '{0}' attempting to be used by {1}:{2}".format(
+                    self.headers['Authorization'],
+                    self.client_address[0],
+                    self.client_address[1]
+                ))
                 self.send_error(401, 'Not Authorized', str(e))
                 return False
             except RuntimeError as e:
@@ -68,7 +85,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
         # Check token expiration
         if self.token.expires is not None and self.token.expires <= datetime.datetime.utcnow():
-            self.server.logging.warning("Expired token '{0}' attempting to be used by {1}:{2}".format(self.headers['Authorization'], self.client_address[0], self.client_address[1]))
+            self.server.logging.warning("Expired token '{0}' attempting to be used by {1}:{2}".format(
+                self.headers['Authorization'],
+                self.client_address[0],
+                self.client_address[1]
+            ))
             self.send_error(401, 'Not Authorized', 'Token has expired.')
             return False
 
@@ -80,14 +101,23 @@ class Handler(http.server.BaseHTTPRequestHandler):
         :returns: True on success, False on failure
         :rtype: bool
         """
-        self.server.logging.debug("Checking admin authentication for {0}:{1}".format(self.client_address[0], self.client_address[1]))
+        self.server.logging.debug("Checking admin authentication for {0}:{1}".format(
+            self.client_address[0],
+            self.client_address[1]
+        ))
         # If Authentication was disabled via the command line assume everyone is an admin
         if "noauth" in cif.options and cif.options.noauth:
-            self.server.logging.debug("Noauth is enabled. Returning admin TRUE for for {0}:{1}".format(self.client_address[0], self.client_address[1]))
+            self.server.logging.debug("Noauth is enabled. Returning admin TRUE for for {0}:{1}".format(
+                self.client_address[0],
+                self.client_address[1]
+            ))
             return True
 
         if not self.token.admin:
-            self.server.logging.debug("Non-Admin tried to do something from {0}:{1}".format(self.client_address[0], self.client_address[1]))
+            self.server.logging.debug("Non-Admin tried to do something from {0}:{1}".format(
+                self.client_address[0],
+                self.client_address[1]
+            ))
             self.send_error(403, 'Forbidden', 'Only admins can do this')
             return False
 
@@ -96,10 +126,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     def send_bad_request(self, error=""):
         """Sends a bad request error to the client
+        :param error: String containing error message
 
         """
-        self.send_error(400, 'Bad Request', 'Requested Path: "{0}" is not valid for this api.\n{0}'.format(self.path,
-                                                                                                           error))
+        self.send_error(400, 'Bad Request', 'Requested Path: "{0}" is not valid for this api.\n{0}'.format(
+            self.path,
+            error
+        ))
+
     def do_HEAD(self):
         """Processes GET requests. These will retrieve or search objects. Tokens can only be listed. Observables can be
         searched.
@@ -119,7 +153,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
         request = match.groupdict()
 
         if request['object'] == "observables" and request['query_string'] is not None:
-            self.server.logging.debug("Observable search requested by '{0}:{1}' with query_string: '{2}'".format(self.client_address[0], self.client_address[1], request['query_string']))
+            self.server.logging.debug("Observable search requested by '{0}:{1}' with query_string: '{2}'".format(
+                self.client_address[0],
+                self.client_address[1],
+                request['query_string']
+            ))
             # Parses an available query string into a dict
             args = dict(
                 (k, v if len(v) > 1 else v[0]) for k, v in urllib.parse.parse_qs(request['query_string']).items()
@@ -138,7 +176,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     args["group"] = self.token.groups
 
             try:
-                self.server.logging.debug("Searching backend for query for {0}:{1}".format(self.client_address[0], self.client_address[1]))
+                self.server.logging.debug("Searching backend for query for {0}:{1}".format(
+                    self.client_address[0],
+                    self.client_address[1]
+                ))
                 count = self.backend.observable_search(args, count_only=True)
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
@@ -153,7 +194,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         else:
             self.send_bad_request()
         return
-    
+
     def do_GET(self):
         """Processes GET requests. These will retrieve or search objects. Tokens can only be listed. Observables can be
         searched.
@@ -173,7 +214,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
         request = match.groupdict()
 
         if request['object'] == "observables" and request['query_string'] is not None:
-            self.server.logging.debug("Observable search requested by '{0}:{1}' with query_string: '{2}'".format(self.client_address[0], self.client_address[1], request['query_string']))
+            self.server.logging.debug("Observable search requested by '{0}:{1}' with query_string: '{2}'".format(
+                self.client_address[0],
+                self.client_address[1],
+                request['query_string']
+            ))
             # Parses an available query string into a dict
             args = dict(
                 (k, v if len(v) > 1 else v[0]) for k, v in urllib.parse.parse_qs(request['query_string']).items()
@@ -209,7 +254,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 del args['count']
 
             try:
-                self.server.logging.debug("Searching backend for query for {0}:{1}".format(self.client_address[0], self.client_address[1]))
+                self.server.logging.debug("Searching backend for query for {0}:{1}".format(
+                    self.client_address[0],
+                    self.client_address[1]
+                ))
                 observables = self.backend.observable_search(args, start, count)
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
@@ -289,8 +337,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send_error(500, 'Internal Server Error', str(e))
             return
 
-
-
     def do_PUT(self):
         """Processes PUT request. PUT requests will create a new object.
         Sends a 201 (Created) for creating tokens.
@@ -313,7 +359,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
             post_variables = cgi.parse_multipart(self.rfile, parameter_dict)
         elif content_type == 'application/x-www-form-urlencoded':
             length = int(self.headers['content-length'])
-            post_variables = dict((k, v if len(v) > 1 else v[0]) for k, v in urllib.parse.parse_qs(self.rfile.read(length).decode('UTF-8'), keep_blank_values=1).items())
+            post_variables = dict((k, v if len(v) > 1 else v[0]) for k, v in
+                                  urllib.parse.parse_qs(self.rfile.read(length).decode('UTF-8'),
+                                                        keep_blank_values=1).items())
         else:
             post_variables = {}
 
@@ -347,10 +395,21 @@ class Handler(http.server.BaseHTTPRequestHandler):
             except Exception as e:
                 self.send_error(422, 'Could not process observable: {0}'.format(e))
                 return
-            self.server.logging.debug("Put {0} into global queue: {1}".format(repr(observable), repr(cif.worker.tasks)))
-            cif.worker.tasks.put(observable)
-            cif.worker.tasks.close()
-            cif.worker.tasks.join_thread()
+            # Send the observable to the backend
+            connection = pika.BlockingConnection(pika.ConnectionParameters(
+                host=cif.options.mq_host,
+                port=cif.options.mq_port
+            ))
+            channel = connection.channel()
+            channel.queue_declare(queue=cif.options.mq_work_queue_name, durable=True)
+            channel.basic_publish(
+                exchange='',
+                routing_key=cif.options.mq_work_queue_name,
+                body=json.dumps(observable.todict()),
+                properties=pika.BasicProperties(delivery_mode=2)
+            )
+            connection.close()
+
             self.send_response(202)
             self.send_header('Location', '/observable/{0}'.format(observable.id))
             self.end_headers()

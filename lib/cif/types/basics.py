@@ -1,9 +1,10 @@
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
 import ipaddress
 import os
 import re
 import cif
+
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
+
 
 hash_types = {
     'uuid': re.compile(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'),
@@ -18,7 +19,7 @@ regex = {
     'url': re.compile('^(http|https|smtp|ftp|sftp)://(\S*\.\S*)$'),
     'url_2': re.compile(r'^([a-z0-9.-]+[a-z]{2,63}|\b(?:\d{1,3}\.){3}\d{1,3}\b)(:(\d+))?/+'),
     'fqdn': re.compile('^((xn--)?(--)?[a-zA-Z0-9-_]+(-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,}(--p1ai)?$'),
-    'email' : re.compile('^.*@.*\..*$')
+    'email': re.compile('^.*@.*\..*$')
 }
 
 

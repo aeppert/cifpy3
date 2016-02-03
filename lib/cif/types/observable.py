@@ -1,13 +1,12 @@
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
 import datetime
 import math
-import re
 
 import dateutil.parser
 
 import cif
 from .base import Base
+
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 
 class Observable(Base):
@@ -18,7 +17,7 @@ class Observable(Base):
         self._id = self._generate_random_hash(32)
         self._group = ['everyone']
         self._tlp = 'amber'
-        self._confidence = cif.CONFIDENCE_DEFAULT
+        self._confidence = 75
         self._tags = []
         self._description = None
         self._data = None
@@ -51,9 +50,11 @@ class Observable(Base):
                     continue
                 setattr(self, key, dictionary[key])
 
-    def _degrade_confidence(self, c=None):
+    @staticmethod
+    def degrade_confidence(observable, c=None):
         """Degrades observable confidence. Used by workers when creating new observables based on others
-
+        :param observable: Observable to degrade confidence of
+        :type observable: Observable
         :param c: Confidence level to base off of. If specified will be used instead of self.confidence
         :type c: float or int
         :return: Degraded confidence level
@@ -62,7 +63,7 @@ class Observable(Base):
         if c is not None:
             return round((math.log(c) / math.log(500)) * c, 3)
 
-        return round((math.log(self.confidence) / math.log(500)) * self.confidence, 3)
+        return round((math.log(observable.confidence) / math.log(500)) * observable.confidence, 3)
 
     @property
     def altid(self):
@@ -117,7 +118,7 @@ class Observable(Base):
 
     @provider.setter
     def provider(self, value):
-        if self._validation and isinstance(value, str) :
+        if self._validation and isinstance(value, str):
             value = value.lower()
         self._provider = value
 
@@ -251,8 +252,9 @@ class Observable(Base):
                     self.otype = 'ipv6'
                 elif cif.types.is_binary(self.observable):
                     self.otype = 'binary'
-                pass
-        self._otype = value.lower()
+                return
+        if value is not None:
+            self._otype = value.lower()
 
     @property
     def reporttime(self):

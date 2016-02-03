@@ -1,12 +1,12 @@
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
+import datetime
 import http.client
 import json
 
-import datetime
 import dateutil.parser
 
 from . import Backend
+
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 
 class Elasticsearch(Backend):
@@ -50,6 +50,7 @@ class Elasticsearch(Backend):
             self._request()
         except Exception as e:
             raise RuntimeError("Ping failed") from e
+
     def observable_search(self, params, start=None, number=None, count_only=False):
         """Uses a list of parameters to build a query and then return the objects from the ElasticSearch backend
 
@@ -96,21 +97,22 @@ class Elasticsearch(Backend):
             observables.append(self._object('observable', hit["_source"]))
 
         return observables
-    
+
     def observable_clean(self, date):
         """Deletes all observables older than date
         
-        :param date datetime: a datetime object. Use this as a point of reference for deleting objects older than this date
+        :param date: a datetime object. Use this as a point of reference for deleting objects older than this date
+        :type date: datetime
         """
         result = self._request(path='/_aliases')
         for index in result.keys():
             if index.startswith("cif.observables-"):
-                (year,month,day) = index.replace("cif.observables-", "").split(".")
+                (year, month, day) = index.replace("cif.observables-", "").split(".")
                 index_date = datetime.datetime(int(year), int(month), int(day))
                 if index_date < date:
                     # Delete the index
                     self._request(path='/{0}'.format(index), method="DELETE")
-        
+
     def observable_create(self, observables):
         """Creates a new observable or list of observables using the ElasticSearch bulk API
 
@@ -323,7 +325,8 @@ class Elasticsearch(Backend):
             raise RuntimeError('Backend error getting response.') from e
 
         if result.status >= 400:
-            raise RuntimeError("Backend error. Got '{0:d} {1:s}' status from the backend.".format(result.status, result.reason))
+            raise RuntimeError(
+                "Backend error. Got '{0:d} {1:s}' status from the backend.".format(result.status, result.reason))
 
         try:
             data = result.read().decode('ISO8859-1')

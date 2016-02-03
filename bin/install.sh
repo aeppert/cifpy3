@@ -73,7 +73,7 @@ if [[ OS_FREEBSD -gt 0 ]]; then
     fi
 
     echo "[INFO] Installing FreeBSD PKG dependencies..."
-    pkg install -y python34 wget git elasticsearch
+    pkg install -y python34 wget git elasticsearch rabbitmq
     if [[ $? -ne 0 ]]; then
         echo "[ERROR] Cannot FreeBSD PKG dependencies."
         exit 1
@@ -92,7 +92,7 @@ if [[ OS_FREEBSD -gt 0 ]]; then
 
 
     echo -n "[INFO] Installing Pip3 dependencies..."
-    scl enable rh-python34 -- pip3 -q install pygeoip feedparser tabulate pyyaml requests dnspython3 python-dateutil schedule beautifulsoup4 setproctitle
+    scl enable rh-python34 -- pip3 -q install pygeoip feedparser tabulate pyyaml requests dnspython3 python-dateutil schedule beautifulsoup4 setproctitle watchdog pika
     if [[ $? -ne 0 ]]; then
         echo "[ERROR] Cannot Pip Install dependencies."
         exit
@@ -146,7 +146,8 @@ if [[ OS_FREEBSD -gt 0 ]]; then
 
     echo 'cifserver_enable="YES"' >> /etc/rc.local
     echo 'cifserver_flags=""' >> /etc/rc.local
-
+    echo 'rabbitmq_enable="YES"' >> /etc/rc.local
+    
     # Download GeoIP data
     /usr/local/cifpy3/bin/cif-utility -g
 
@@ -192,7 +193,7 @@ if [[ OS_CENTOS -gt 0 ]] || [[ OS_REDHAT -gt 0 ]]; then
     fi
 
     echo "[INFO] Installing CentOS dependencies..."
-    yum -q -y install scl-utils wget java-1.8.0-openjdk-headless net-tools git
+    yum -q -y install scl-utils wget java-1.8.0-openjdk-headless net-tools git 
     if [[ $? -ne 0 ]]; then
         echo "[ERROR] Cannot install CentOS dependencies."
         exit
@@ -207,15 +208,27 @@ if [[ OS_CENTOS -gt 0 ]] || [[ OS_REDHAT -gt 0 ]]; then
         exit
     fi
     rm -f /tmp/rhscl-rh-python34-epel-7-x86_64.noarch.rpm
-    yum -q -y install rh-python34
+    yum -q -y install rh-python34 erlang
     if [[ $? -ne 0 ]]; then
         echo "[ERROR] Cannot install Python34 packages."
         exit
     fi
     echo "[OKAY] Installed Python34"
 
+    echo -n "[INFO] Installing RabbitMQ-Server"
+    wget --no-check-certificage -I /tmp/rabbitmq-server-3.3.5-1.noarch.rpm https://www.rabbitmq.com/releases/rabbitmq-server/v3.3.5/rabbitmq-server-3.3.5-1.noarch.rpm
+    rpm --import https://www.rabbitmq.com/rabbitmq-signing-key-public.asc
+    yum -q -y install /tmp/rabbitmq-server-3.3.5-1.noarch.rpm
+    if [[ $? -ne 0 ]]; then
+        echo "[ERROR] Cannot install RabbitMQ."
+        exit
+    fi
+    echo "[OKAY] Installed RabbitMQ"
+    chkconfig rabbitmq-server on
+    /sbin/service rabbitmq-server start
+
     echo -n "[INFO] Installing Pip3 dependencies..."
-    scl enable rh-python34 -- pip3 -q install pygeoip feedparser tabulate pyyaml requests dnspython3 python-dateutil schedule beautifulsoup4 setproctitle
+    scl enable rh-python34 -- pip3 -q install pygeoip feedparser tabulate pyyaml requests dnspython3 python-dateutil schedule beautifulsoup4 setproctitle watchdog pika
     if [[ $? -ne 0 ]]; then
         echo "[ERROR] Cannot Pip Install dependencies."
         exit
@@ -336,7 +349,7 @@ if [[ OS_DEBIAN -gt 0 ]] || [[ OS_UBUNTU -gt 0 ]]; then
 
     # Apt Dependencies
     echo -n "Installing Apt Dependencies..."
-    apt-get -qq -y install git python3 python3-requests python3-yaml python3-dnspython python3-pip python3-dateutil python3-bs4
+    apt-get -qq -y install git python3 python3-requests python3-yaml python3-dnspython python3-pip python3-dateutil python3-bs4 rabbitmq-server 
     if [[ $? -ne 0 ]]; then
         echo "[ERROR] Cannot Apt Install dependencies."
         exit
@@ -345,7 +358,7 @@ if [[ OS_DEBIAN -gt 0 ]] || [[ OS_UBUNTU -gt 0 ]]; then
 
     # Pip dependencies
     echo -n "Installing Pip3 Dependencies..."
-    pip3 -q install pygeoip feedparser tabulate schedule setproctitle
+    pip3 -q install pygeoip feedparser tabulate schedule setproctitle watchdog pika
     if [[ $? -ne 0 ]]; then
         echo "[ERROR] Cannot Pip Install dependencies."
         exit

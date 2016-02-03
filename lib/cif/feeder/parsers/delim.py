@@ -1,6 +1,6 @@
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
 from ..parser import Parser
+
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 
 class Delim(Parser):
@@ -55,10 +55,10 @@ class Delim(Parser):
                     )
                 )
                 continue
-            for key,value in enumerate(match):
+            for key, value in enumerate(match):
                 if isinstance(value, str):
                     match[key] = value.strip()
-            
+
             observable = self.create_observable_from_meta_if_not_in_journal(match)
 
             if observable is not None:

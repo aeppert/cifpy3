@@ -31,28 +31,28 @@ cif.CACHEDIR = "{0}/cache".format(cif.APPDIR)
 parser = argparse.ArgumentParser(description='Collective Intelligence Framework Utility',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 commands = parser.add_mutually_exclusive_group(required=True)
-commands.add_argument('-i', '--install', dest='install', action="store_true",
+commands.add_argument('--install', dest='install', action="store_true",
                       help='Install tables to backend storage engine')
-commands.add_argument('-u', '--uninstall', dest='uninstall', action="store_true",
+commands.add_argument('--uninstall', dest='uninstall', action="store_true",
                       help='Install tables to backend storage engine')
-commands.add_argument('-r', '--reinstall', dest='reinstall', action="store_true",
+commands.add_argument('--reinstall', dest='reinstall', action="store_true",
                       help='Install tables to backend storage engine')
-commands.add_argument('-d', '--delete', dest='clear', action="store_true",
+commands.add_argument('--delete', dest='clear', action="store_true",
                       help='Delete all observables')
-commands.add_argument('-g', '--geoip', dest='geoip', action="store_true",
+commands.add_argument('--geoip', dest='geoip', action="store_true",
                       help='Download GeoIP Data into LIB directory')
-commands.add_argument('-c', '--clean', dest='clean', action="store_true",
+commands.add_argument('--clean', dest='clean', action="store_true",
                       help='Remove observables older than --days number of days')
-                      
-parser.add_argument('--days', dest='days', nargs='?', type=int, default=14,
-                      help='Number of days to remove')
+
+parser.add_argument('--clean-days', dest='days', nargs='?', type=int, default=14,
+                    help='Number of days to remove')
 parser.add_argument('--verbose', dest='loglevel', nargs='?', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
                     default='WARNING')
 
 group = parser.add_argument_group('Storage Options')
-group.add_argument('-S', '--storage-engine', dest='storage', nargs='?', type=str, default='elasticsearch',
+group.add_argument('--storage-engine', dest='storage', nargs='?', type=str, default='elasticsearch',
                    help='storage engine')
-group.add_argument('-C', '--storage-connection', dest='storage_uri', nargs='?', type=str,
+group.add_argument('--storage-connection', dest='storage_uri', nargs='?', type=str,
                    default='http://127.0.0.1:9200', help='Connection string for connecting to the storage engine')
 
 # Assign options for global usage in the cif package
@@ -140,6 +140,6 @@ if __name__ == "__main__":
             match = date.search(file)
             if match:
                 matchdict = match.groupdict()
-                if datetime.datetime(int(matchdict['year']), int(matchdict['month']), int(matchdict['day'])) < (datetime.datetime.now() - datetime.timedelta(days=cif.options.days)):
+                date = datetime.datetime(int(matchdict['year']), int(matchdict['month']), int(matchdict['day']))
+                if date < (datetime.datetime.now() - datetime.timedelta(days=cif.options.days)):
                     os.unlink(os.path.join(cif.CACHEDIR, file))
-                

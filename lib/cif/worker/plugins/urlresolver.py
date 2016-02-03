@@ -1,13 +1,12 @@
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
-import urllib.parse
-import socket
 import datetime
+import socket
+import urllib.parse
 
 import cif.types
 
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
 
-# noinspection PyBroadException
+
 def process(observable=None):
     """Takes an observable and creates new observables from data relating to the specified observable
 
@@ -22,7 +21,7 @@ def process(observable=None):
         return None
 
     if "://" not in observable.observable:
-        url = "http://"+observable.observable
+        url = "http://" + observable.observable
     else:
         url = observable.observable
 
@@ -48,7 +47,7 @@ def process(observable=None):
         "tlp": observable.tlp,
         "group": observable.group,
         "provider": observable.provider,
-        "confidence": observable._degrade_confidence(),
+        "confidence": cif.types.Observable.degrade_confidence(observable),
         "application": observable.application,
         "protocol": observable.protocol,
         "altid": observable.altid,

@@ -1,51 +1,51 @@
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
-import ipaddress
 import datetime
+import ipaddress
 
 import dns
 
 import cif.types
 
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
+
 provider = 'spamhaus.org'
 confidence = 95
 codes = {
     "ipv4": {
-        "127.0.0.2" : {
+        "127.0.0.2": {
             "assessment": "spam",
             "description": 'Direct UBE sources, spam operations & spam services',
         },
-        "127.0.0.3" : {
+        "127.0.0.3": {
             "assessment": "spam",
             "description": 'Direct snowshoe spam sources detected via automation',
         },
-        "127.0.0.4" : {
+        "127.0.0.4": {
             "assessment": "exploit",
             "description": 'CBL + customised NJABL. 3rd party exploits (proxies, trojans, etc.)',
         },
-        "127.0.0.5" : {
+        "127.0.0.5": {
             "assessment": "exploit",
             "description": 'CBL + customised NJABL. 3rd party exploits (proxies, trojans, etc.)',
         },
-        "127.0.0.6" : {
+        "127.0.0.6": {
             "assessment": "exploit",
             "description": 'CBL + customised NJABL. 3rd party exploits (proxies, trojans, etc.)',
         },
-        "127.0.0.7" : {
+        "127.0.0.7": {
             "assessment": "exploit",
             "description": 'CBL + customised NJABL. 3rd party exploits (proxies, trojans, etc.)',
         },
-        "127.0.0.8" : {
+        "127.0.0.8": {
             "assessment": "exploit",
             "description": 'CBL + customised NJABL. 3rd party exploits (proxies, trojans, etc.)',
         }
     },
     "fqdn": {
-        "127.0.1.2" : {
+        "127.0.1.2": {
             "assessment": "suspicious",
             "description": 'spammed domain',
         },
-        "127.0.1.3" : {
+        "127.0.1.3": {
             "assessment": "suspicious",
             "description": 'spammed redirector domain',
         }
@@ -53,7 +53,7 @@ codes = {
 }
 
 for i in range(4, 19):
-    codes['fqdn']["127.0.1.{0}".format(i)] = { "assessment": "suspicious", "description": 'spammed domain'}
+    codes['fqdn']["127.0.1.{0}".format(i)] = {"assessment": "suspicious", "description": 'spammed domain'}
 
 for i in range(20, 39):
     codes['fqdn']["127.0.1.{0}".format(i)] = {"assessment": "malware", "description": ''}

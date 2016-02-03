@@ -20,8 +20,5 @@ from . import feeder
 from . import types
 from . import worker
 
-CONFIDENCE_MIN = 25
-CONFIDENCE_DEFAULT = 75
-
 proxies = {}
 

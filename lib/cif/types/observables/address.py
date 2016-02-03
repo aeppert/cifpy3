@@ -1,9 +1,9 @@
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
 import socket
 
-from ..observable import Observable
 from ..basics import *
+from ..observable import Observable
+
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 
 class Address(Observable):
@@ -32,7 +32,7 @@ class Address(Observable):
                         for port in ports:
                             start_and_end = port.split('-')
                             if len(start_and_end) == 2:
-                                for i in range(int(start_and_end[0]), int(start_and_end[1])+1):
+                                for i in range(int(start_and_end[0]), int(start_and_end[1]) + 1):
                                     value.append(i)
                             else:
                                 value.append(int(port))
@@ -44,7 +44,7 @@ class Address(Observable):
                     except Exception as e:
                         raise TypeError("PortList must be a list of integers") from e
 
-            for i,v in enumerate(value):
+            for i, v in enumerate(value):
                 if not isinstance(v, int):
                     try:
                         value[i] = int(v)

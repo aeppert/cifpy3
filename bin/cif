@@ -370,7 +370,7 @@ for worker in workers:
 
 # Merge the results
 final_results = []
-for i, v in enumerate(final_results):
+for i, v in enumerate(results_list):
     if v is None:
         continue
     final_results.extend(v)

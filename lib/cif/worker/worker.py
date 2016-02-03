@@ -74,7 +74,7 @@ class Thread(threading.Thread):
             self.backendlock.release()
 
         for observable in newobservables:
-            self._mq_channel.basic_public(cif.options.mq_observable_exchange_name, '', json.dumps(observable.todict()))
+            self._mq_channel.basic_publish(cif.options.mq_observable_exchange_name, '', json.dumps(observable.todict()))
 
     def stop(self):
         self._mq_channel.stop_consuming()

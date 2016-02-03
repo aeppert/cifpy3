@@ -22,7 +22,8 @@ class Thread(threading.Thread):
 
     def run(self):
         self._mq_connection = pika.BlockingConnection(
-            parameters=pika.ConnectionParameters(host=cif.options.mq_host, port=cif.options.mq_port)
+            parameters=pika.ConnectionParameters(host=cif.options.mq_host, port=cif.options.mq_port,
+                                                 retry_delay=1, socket_timeout=3, connection_attempts=5)
         )
         self._mq_channel = self._mq_connection.channel()
         self._mq_channel.queue_declare(cif.options.mq_work_queue_name, durable=True)

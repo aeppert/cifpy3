@@ -23,7 +23,7 @@ class Binary(Observable):
         if self._validation and value is None and self.observable is not None:
             self.htype = 'sha256'
             tmp = hashlib.sha256()
-            tmp.update(self.observable)
+            tmp.update(self.observable.encode('UTF-8'))
             value = tmp.hexdigest()
         self._hash = value
 

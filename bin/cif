@@ -3,12 +3,10 @@
 # cif client - Connects to the cif REST API
 #
 import argparse
-import re
 import os
 import sys
 import json
-import csv
-import xml.etree.cElementTree
+
 import threading
 import math
 import queue
@@ -16,209 +14,11 @@ import queue
 import requests
 import requests.exceptions
 import yaml
-import tabulate
+
+import cif
 
 __author__ = 'James DeVincentis <james.d@hexhost.net>'
 
-
-###############################################################################
-# Generic output class
-class Output(object):
-    def __init__(self, results, output_handle):
-        self.results = results
-        self.output_handle = output_handle
-
-    def process(self):
-        pass
-
-
-###############################################################################
-# class output_cli
-class OutputCLI(Output):
-    def __init__(self, results, output_handle):
-        Output.__init__(self, results, output_handle)
-
-    def process(self):
-        headers = options['select'].split(',')
-        rows = []
-        for result in self.results:
-            row = []
-            for header in headers:
-                if header in result:
-                    if isinstance(result[header], list):
-                        result[header] = ', '.join(result[header])
-                    row.append(result[header])
-                else:
-                    row.append('')
-            rows.append(row)
-        self.output_handle.write(tabulate.tabulate(rows, headers=headers, tablefmt="psql") + "\n")
-
-
-##############################################################################
-# class output_json
-class OutputJSON(Output):
-    def __init__(self, results, output_handle):
-        Output.__init__(self, results, output_handle)
-
-    def process(self):
-        self.output_handle.write(json.dumps(self.results) + "\n")
-
-
-##############################################################################
-# class output_xml
-class OutputXML(Output):
-    def __init__(self, results, output_handle):
-        Output.__init__(self, results, output_handle)
-
-    def process(self):
-        headers = options['select'].split(',')
-
-        if options['write'] is not None:
-            self.output_handle.close()
-            self.output_handle = open(options['write'], 'wb')
-        else:
-            raise RuntimeError("XML output can only be written to a file.")
-
-        observables = xml.etree.cElementTree.Element("observables")
-        for result in self.results:
-            observable = xml.etree.cElementTree.SubElement(observables, "observable")
-            for header in headers:
-                if isinstance(result[header], list):
-                    if not header.endswith('s'):
-                        header += 's'
-                    sub = xml.etree.cElementTree.SubElement(observable, header)
-                    for val in result[header]:
-                        xml.etree.cElementTree.SubElement(sub, header[:-1]).text = val
-                else:
-                    xml.etree.cElementTree.SubElement(observable, header).text = result[header]
-
-        tree = xml.etree.cElementTree.ElementTree(observables)
-        tree.write(self.output_handle)
-
-
-##############################################################################
-# class output_csv
-class OutputCSV(Output):
-    def __init__(self, results, output_handle):
-        Output.__init__(self, results, output_handle)
-
-    def process(self):
-        headers = options['select'].split(',')
-        writer = csv.writer(self.output_handle)
-        writer.writerow(headers)
-        for result in self.results:
-            row = []
-            for header in headers:
-                if header in result:
-                    if isinstance(result[header], list):
-                        result[header] = ', '.join(result[header])
-                    row.append(result[header])
-                else:
-                    row.append('')
-            writer.writerow(row)
-
-
-##############################################################################
-# class output_custom
-class OutputCustom(Output):
-    def __init__(self, results, output_handle):
-        Output.__init__(self, results, output_handle)
-
-    def process(self):
-        columns = options['select'].split(',')
-        for result in self.results:
-            row = []
-            for column in columns:
-                if column in result:
-                    row.append(result[column])
-                else:
-                    row.append('')
-            try:
-                self.output_handle.write(options['format_string'].format(*row) + "\n")
-            except Exception as ex:
-                raise RuntimeError("Could not use custom formatting. column count: {0}; row count: {1}.".format(
-                    len(columns), len(row))
-                ) from ex
-
-
-##############################################################################
-# class output_single
-class OutputSingle(Output):
-    def __init__(self, results, output_handle):
-        Output.__init__(self, results, output_handle)
-
-    def process(self):
-        for result in self.results:
-            if options['select'] in result:
-                self.output_handle.write(result[options['select']] + "\n")
-
-
-##############################################################################
-# class output_bro
-class OutputBro(Output):
-    otype = {'ipv4': 'ADDR',
-             'url': 'URL',
-             'fqdn': 'DOMAIN'}
-
-    SEP = '|'
-
-    HEADER = '#' + '\t'.join(['fields',
-                              'indicator',
-                              'indicator_type',
-                              'meta.desc',
-                              'meta.cif_confidence',
-                              'meta.source'])
-
-    def __init__(self, results, output_handle):
-        Output.__init__(self, results, output_handle)
-        self.cols = ['observable',
-                     'otype',
-                     'description',
-                     'confidence',
-                     'provider']
-
-    def _check_list(self, y):
-        ret = y
-        if type(y) is list:
-            ret = OutputBro.SEP.join(y)
-        return ret
-
-    def process(self):
-        text = []
-        for result in self.results:
-            r = []
-            if result['otype'] is 'url':
-                result['observable'] = re.sub(r'(https?://)', '',
-                                              result['observable'])
-
-            for c in self.cols:
-                y = result.get(c, '-')
-                y = self._check_list(y)
-                y = str(y)
-                if c is 'otype':
-                    y = 'Intel::{0}'.format(OutputBro.otype[result[c]])
-                if c is 'description':
-                    if result[c] is None:
-                        y = result['tags']
-                        y = self._check_list(y)
-
-                r.append(y)
-            text.append("\t".join(r))
-
-        text = "\n".join(text)
-        text = "{0}\n{1}".format(OutputBro.HEADER, text)
-        self.output_handle.write(text)
-
-
-output_handlers = {'cli': OutputCLI,
-                   'json': OutputJSON,
-                   'xml': OutputXML,
-                   'csv': OutputCSV,
-                   'custom': OutputCustom,
-                   'single': OutputSingle,
-                   'bro': OutputBro}
-
-##############################################################################
 
 parser = argparse.ArgumentParser(description='Collective Intelligence Framework Client',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -241,7 +41,7 @@ group.add_argument('--parallel', type=int, default=4, help="Make X requests at o
 #                   help='Shows the HTTP headers the server responded with')
 
 group = parser.add_argument_group('Output Options')
-group.add_argument('--format', dest='format', choices=output_handlers.keys(), default="cli",
+group.add_argument('--format', dest='format', choices=cif.client.formatters.list, default="table",
                    help="Output in this format. Custom can be defined using --format-string 'column,column2,...', "
                         "single will use the first column specified in 'select', by default it is 'observable'")
 group.add_argument('--select', dest='select', help='Comma separated list of columns to display.',
@@ -380,5 +180,5 @@ if options['write'] is not None:
 else:
     outputhandle = sys.stdout
 
-oh = output_handlers[options['format']](final_results, outputhandle)
-oh.process()
+# Use the output handler to write the results
+cif.client.formatters.formatters[options['format']](options, final_results, outputhandle)

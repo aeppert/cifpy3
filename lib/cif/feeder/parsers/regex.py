@@ -1,12 +1,11 @@
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
 import re
 
 from ..parser import Parser
 
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
+
 
 class Regex(Parser):
-
     def __init__(self):
         try:
             self.regex = re.compile(self.parsing_details["pattern"])
@@ -46,7 +45,7 @@ class Regex(Parser):
             if line.startswith('#'):
                 continue
             match = self.regex.search(line)
-            
+
             if match is None:
                 if not line.startswith('#') and not line.startswith(';') and not len(line) == 0:
                     self.logging.debug("No Match - position {0}; contents: '{1}'; match: {2}; values: {3}".format(
@@ -64,7 +63,7 @@ class Regex(Parser):
                 continue
 
             results = []
-            for index in range(1, match.lastindex+1):
+            for index in range(1, match.lastindex + 1):
                 results.append(match.group(index))
 
             observable = self.create_observable_from_meta_if_not_in_journal(results)

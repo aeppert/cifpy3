@@ -1,6 +1,6 @@
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
 from cif.types.base import Base
+
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 
 class Token(Base):

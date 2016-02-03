@@ -2,11 +2,11 @@ import multiprocessing
 import os
 import setproctitle
 import time
-import watchdog.observers
-import watchdog.events
-import yaml
 
 import schedule
+import watchdog.events
+import watchdog.observers
+import yaml
 
 import cif
 
@@ -14,7 +14,6 @@ __author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 
 class FeedReloadSignaler(watchdog.events.FileSystemEventHandler):
-
     def __init__(self):
         watchdog.events.FileSystemEventHandler.__init__(self)
         self.logging = cif.logging.getLogger('FEEDRELOAD')
@@ -36,7 +35,6 @@ class FeedReloadSignaler(watchdog.events.FileSystemEventHandler):
 
         self.logging.debug("Signaling reload due to {0} event for '{1}'.".format(event.event_type, event.src_path))
         cif.feeder.do_reload = True
-
 
 
 class Feeder(multiprocessing.Process):
@@ -85,29 +83,29 @@ class Feeder(multiprocessing.Process):
                     if self.feeds[feed_file]['feeds'][feed_name]['interval'] == "hourly":
 
                         self.logging.debug(
-                                repr(schedule.every().hour.at("00:00").do(self._run_feed, feed_file, feed_name))
+                            repr(schedule.every().hour.at("00:00").do(self._run_feed, feed_file, feed_name))
                         )
 
                     elif self.feeds[feed_file]['feeds'][feed_name]['interval'] == "daily":
 
                         self.logging.debug(
-                                repr(schedule.every().day.at("00:00").do(self._run_feed, feed_file, feed_name))
+                            repr(schedule.every().day.at("00:00").do(self._run_feed, feed_file, feed_name))
                         )
 
                     elif self.feeds[feed_file]['feeds'][feed_name]['interval'] == "weekly":
 
                         self.logging.debug(
-                                repr(schedule.every().week.at("00:00").do(self._run_feed, feed_file, feed_name))
+                            repr(schedule.every().week.at("00:00").do(self._run_feed, feed_file, feed_name))
                         )
 
                     else:
 
                         self.logging.debug(
-                                repr(schedule.every().hour.at("00:00").do(self._run_feed, feed_file, feed_name))
+                            repr(schedule.every().hour.at("00:00").do(self._run_feed, feed_file, feed_name))
                         )
                 else:
                     self.logging.debug(
-                            repr(schedule.every().hour.at("00:00").do(self._run_feed, feed_file, feed_name))
+                        repr(schedule.every().hour.at("00:00").do(self._run_feed, feed_file, feed_name))
                     )
 
     def _run_feed(self, feed_file, feed_name):

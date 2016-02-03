@@ -1,7 +1,7 @@
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
 from .address import Address
 from ..basics import *
+
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 
 class Ipaddress(Address):

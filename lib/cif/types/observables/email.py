@@ -1,9 +1,9 @@
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
 import hashlib
 
-from ..observable import Observable
 from ..basics import *
+from ..observable import Observable
+
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 
 class Email(Observable):

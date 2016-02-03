@@ -1,6 +1,6 @@
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
 from . import Delim
+
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 
 class Pipe(Delim):

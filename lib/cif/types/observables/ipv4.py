@@ -1,6 +1,6 @@
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
 from .ipaddress import Ipaddress
+
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 
 class Ipv4(Ipaddress):

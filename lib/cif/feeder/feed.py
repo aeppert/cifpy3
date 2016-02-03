@@ -1,10 +1,10 @@
-import os
-import json
 import datetime
 import gzip
+import json
+import multiprocessing
+import os
 import tempfile
 import zipfile
-import multiprocessing
 
 import pika
 import requests
@@ -22,9 +22,11 @@ class Feed(multiprocessing.Process):
         self.feed_config = feed_config
         self.logging = cif.logging.getLogger('FEED')
         self.logging.info("Setting up RabbitMQ Queues")
-        self.connection = pika.BlockingConnection(pika.ConnectionParameters(host=cif.options.mq_host, port=cif.options.mq_port))
+        self.connection = pika.BlockingConnection(
+            pika.ConnectionParameters(host=cif.options.mq_host, port=cif.options.mq_port))
         self.channel = self.connection.channel()
         self.channel.queue_declare(queue=cif.options.mq_work_queue_name, durable=True)
+
     def run(self):
         """Retrieves the feed, passes it to a parser, and then passes parsed observables to the workers
 
@@ -34,17 +36,20 @@ class Feed(multiprocessing.Process):
             return
         if self.feed_name not in self.feed_config['feeds']:
             return
-        
+
         # These are fields that are used for control when parsing and should not be passed down to the observables
         fields_to_strip = ['node', 'map', 'values', 'pattern', 'remote', 'parser',
                            'username', 'password', 'method', 'start', 'end', 'interval']
 
         # Pull out parsing details for feeds from defined meta
-        feed_parsing_details = dict((name, self.feed_config["feeds"][self.feed_name][name]) for name in fields_to_strip if name in self.feed_config["feeds"][self.feed_name].keys())
+        feed_parsing_details = dict(
+            (name, self.feed_config["feeds"][self.feed_name][name]) for name in fields_to_strip if
+            name in self.feed_config["feeds"][self.feed_name].keys())
         feed_parsing_details['feed_name'] = self.feed_name
 
         # Exclude control fields from defined meta for created observables
-        feed_meta = dict((name, self.feed_config["feeds"][self.feed_name][name]) for name in self.feed_config["feeds"][self.feed_name].keys() if name not in fields_to_strip)
+        feed_meta = dict((name, self.feed_config["feeds"][self.feed_name][name]) for name in
+                         self.feed_config["feeds"][self.feed_name].keys() if name not in fields_to_strip)
 
         if "method" not in feed_parsing_details.keys():
             feed_parsing_details["method"] = "GET"
@@ -72,7 +77,7 @@ class Feed(multiprocessing.Process):
             )
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                'Chrome/45.0.2454.93 Safari/537.36'
+                              'Chrome/45.0.2454.93 Safari/537.36'
             }
             try:
                 response = requests.request(feed_parsing_details["method"], feed_parsing_details["remote"],
@@ -143,7 +148,7 @@ class Feed(multiprocessing.Process):
                         routing_key=cif.options.mq_work_queue_name,
                         body=json.dumps(observable.todict()),
                         properties=pika.BasicProperties(
-                                delivery_mode = 2, # make message persistent
+                            delivery_mode=2,  # make message persistent
                         )
                     )
 

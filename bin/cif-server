@@ -3,15 +3,15 @@
 # cif Server - Listens and handles all data incoming/outgoing
 #
 import argparse
-import os
-import signal
-import multiprocessing
 import logging
+import multiprocessing
+import os
+import setproctitle
+import signal
 import sys
 import time
 
 import pika
-import setproctitle
 
 __author__ = 'James DeVincentis <james.d@hexhost.net>'
 
@@ -28,23 +28,22 @@ cif.ETCDIR = os.path.join(cif.APPDIR, 'etc')
 cif.LOGDIR = os.path.join(cif.APPDIR, 'log')
 cif.CACHEDIR = os.path.join(cif.APPDIR, 'cache')
 
-
 parser = argparse.ArgumentParser(description='Collective Intelligence Framework Server',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--logfile', dest='logfile', nargs='?', type=str, default=os.path.join(cif.LOGDIR, 'cif-server.log'))
+parser.add_argument('--logfile', dest='logfile', nargs='?', default=os.path.join(cif.LOGDIR, 'cif-server.log'))
 parser.add_argument('--loglevel', dest='loglevel', nargs='?', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
-                   default='WARNING')
+                    default='WARNING')
 
 group = parser.add_argument_group(title='Worker Options', description='Customize Worker behavior')
 group.add_argument('--worker-disable', dest='worker_disable', action="store_true", help='disable workers')
 group.add_argument('--worker-start', dest='workers_start', nargs='?', type=int, default=1,
-                    help='number of workers to spawn at start')
+                   help='number of workers to spawn at start')
 group.add_argument('--workers-max', dest='workers_max', nargs='?', type=int, default=multiprocessing.cpu_count(),
-                    help='maximum number of workers to during heavy load')
+                   help='maximum number of workers to during heavy load')
 group.add_argument('--worker-threads-start', dest='worker_threads_start', nargs='?', type=int, default=5,
-                    help='number of threads per worker to spawn at start')
+                   help='number of threads per worker to spawn at start')
 group.add_argument('--worker-threads-max', dest='worker_threads_max', nargs='?', type=int, default=30,
-                    help='maximum number of threads per worker during heavy load')
+                   help='maximum number of threads per worker during heavy load')
 
 group = parser.add_argument_group('AMQP Settings', description='AMQP 0-9-1 Host Protocol Settings')
 group.add_argument('--mq-host', dest='mq_host', nargs='?', default='127.0.0.1',
@@ -52,8 +51,8 @@ group.add_argument('--mq-host', dest='mq_host', nargs='?', default='127.0.0.1',
 group.add_argument('--mq-port', dest='mq_port', nargs='?', type=int, default=5672, help='host server Port')
 group.add_argument('--mq-work-queue-name', dest='mq_work_queue_name', nargs='?', default='cifpy3_worker_queue',
                    help='RabbitMQ Worker Queue Name')
-group.add_argument('--mq-observable-exchange-name', dest='mq_observable_exchange_name', nargs='?', default='cifpy3_observables',
-                   help='RabbitMQ Observables Exchange Name')
+group.add_argument('--mq-observable-exchange-name', dest='mq_observable_exchange_name', nargs='?',
+                   default='cifpy3_observables', help='RabbitMQ Observables Exchange Name')
 
 group = parser.add_argument_group('API Options', description='API Server behavior')
 group.add_argument('--api-disable', dest='api_disable', action="store_true", help='disable API')
@@ -81,7 +80,8 @@ group.add_argument('--feeder-https-proxy', dest='feed_https_proxy', nargs='?', t
 # Notifications are not yet supported
 # group = parser.add_argument_group('Notification Options')
 # group.add_argument('--notify', action="store_true", help='enable notification')
-# group.add_argument('--notify-to', dest='notify_to', nargs='?', type=str, default='root', help='notification recipient')
+# group.add_argument('--notify-to', dest='notify_to', nargs='?', type=str, default='root',
+#                    help='notification recipient')
 # group.add_argument('--notify-from', dest='notify_from', nargs='?', type=str, default='cif', help='from address')
 # group.add_argument('--notify-prefix', dest='notify_prefix', nargs='?', type=str, default='[cif Server]',
 #                   help='notification subject prefix')
@@ -91,7 +91,6 @@ group.add_argument('--feeder-https-proxy', dest='feed_https_proxy', nargs='?', t
 
 # Assign options for global usage in the cif package
 cif.options = parser.parse_args()
-
 
 # Configure our basic logging.
 logging.basicConfig(level=getattr(logging, cif.options.loglevel),
@@ -125,11 +124,13 @@ def sigint_handler(signum, frame):
     logger.warning("Received Signal #{0}. Exiting.".format(signum))
     # noinspection PyBroadException
     try:
-        logger.info("Killing Workers")
-        for worker in range(1, cif.options.workers_start+1):
-            cif.worker.tasks.put(None)
-        logger.info("Killing api")
-        api.terminate()
+        if not cif.options.worker_disable:
+            logger.info("Killing Workers")
+            for worker in range(1, cif.options.workers_start + 1):
+                worker.stop()
+        if not cif.options.api_disable:
+            logger.info("Killing api")
+            api.terminate()
         if not cif.options.feed_disable:
             logger.info("Killing feeder")
             feeder.terminate()
@@ -137,6 +138,8 @@ def sigint_handler(signum, frame):
         pass
     del frame
     sys.exit(0)
+
+
 signal.signal(signal.SIGINT, sigint_handler)
 
 try:
@@ -160,13 +163,13 @@ if cif.options.worker_disable and cif.options.api_disable and cif.options.feed_d
 while True:
     if not cif.options.worker_disable:
         logger.info("Monitoring Loop: Checking Workers")
-        for i in range(1, cif.options.workers_start+1):
+        for i in range(1, cif.options.workers_start + 1):
             logger.info("Monitoring Loop: Checking worker {0}".format(i))
             if i not in workers or workers[i] is None or not workers[i].is_alive():
                 if i in workers and workers[i] is not None and not workers[i].recycle:
-                      logger.error("Monitoring Loop: worker #{0} died or not started. Restarting.".format(i))
+                    logger.error("Monitoring Loop: worker #{0} died or not started. Restarting.".format(i))
                 if i in workers and workers[i] is not None and workers[i].recycle:
-                  workers[i].join()
+                    workers[i].join()
                 workers[i] = cif.worker.Process(str(i))
                 workers[i].daemon = 1
                 workers[i].start()

@@ -1,12 +1,11 @@
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
 import ipaddress
 
-import dns.reversename
 import dns.resolver
+import dns.reversename
+
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 
-# noinspection PyBroadException
 def process(observable=None):
     """Takes an observable and adds meta to it. This meta processor adds BGP data (ASN, Peers)
 

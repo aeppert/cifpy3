@@ -1,14 +1,14 @@
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
 import json
 import multiprocessing
+import setproctitle
 import threading
 import time
 
 import pika
-import setproctitle
 
 import cif
+
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 
 class Thread(threading.Thread):
@@ -17,106 +17,27 @@ class Thread(threading.Thread):
         self.backend = backend
         self.backendlock = backendlock
         self.logging = cif.logging.getLogger("THREAD #{0}-{1}".format(worker, name))
-        self._connection = None
-        self._channel = None
-        self._closing = False
-        self._consumer_tag = None
-
-    def connect(self):
-        return pika.SelectConnection(parameters=pika.ConnectionParameters(host=cif.options.mq_host, port=cif.options.mq_port),
-                                     on_open_callback=self.on_connection_open,
-                                     on_open_error_callback=self.on_connection_open_error,
-                                     stop_ioloop_on_close=False)
-
-    def on_connection_open(self, unused_connection):
-        self.add_on_connection_close_callback()
-        self.open_channel()
-        
-    def on_connection_open_error(self, unused_connection, error_message):
-        self.logging.warning("Could not connect to MQ Server. Pika Said: '{0}'".format(error_message))
-    
-    def add_on_connection_close_callback(self):
-        self._connection.add_on_close_callback(self.on_connection_closed)
-
-    def on_connection_closed(self, connection, reply_code, reply_text):
-        self._channel = None
-        if self._closing:
-            self._connection.ioloop.stop()
-        else:
-            self.logging.warning('Connection closed, reopening in 5 seconds: (%s) %s',
-                           reply_code, reply_text)
-            self._connection.add_timeout(5, self.reconnect)
-
-    def reconnect(self):
-        self._connection.ioloop.stop()
-        if not self._closing:
-            self._connection = self.connect()
-            self._connection.ioloop.start()
-
-    def open_channel(self):
-        self._connection.channel(on_open_callback=self.on_channel_open)
-
-    def on_channel_open(self, channel):
-        self._channel = channel
-        self.add_on_channel_close_callback()
-        self.setup_queue(cif.options.mq_work_queue_name)
-
-    def add_on_channel_close_callback(self):
-        self._channel.add_on_close_callback(self.on_channel_closed)
-
-    def on_channel_closed(self, channel, reply_code, reply_text):
-        self._connection.close()
-
-    def setup_queue(self, queue_name):
-        self._channel.queue_declare(self.on_queue_declareok, queue=queue_name, durable=True)
-
-    def on_queue_declareok(self, method_frame):
-        self._channel.basic_qos(prefetch_count=1)
-        self.start_consuming()
-
-    def start_consuming(self):
-        self.add_on_cancel_callback()
-        self._consumer_tag = self._channel.basic_consume(self.on_message, cif.options.mq_work_queue_name)
-
-    def add_on_cancel_callback(self):
-        self._channel.add_on_cancel_callback(self.on_consumer_cancelled)
-
-    def on_consumer_cancelled(self, method_frame):
-        if self._channel:
-            self._channel.close()
-
-    def on_message(self, unused_channel, basic_deliver, properties, body):
-        self.process(body)
-        self.acknowledge_message(basic_deliver.delivery_tag)
-
-    def acknowledge_message(self, delivery_tag):
-        self._channel.basic_ack(delivery_tag)
-
-    def stop_consuming(self):
-        if self._channel:
-            self._channel.basic_cancel(self.on_cancelok, self._consumer_tag)
-
-    def on_cancelok(self, unused_frame):
-        self.close_channel()
-
-    def close_channel(self):
-        self._channel.close()
+        self._mq_connection = None
+        self._mq_channel = None
 
     def run(self):
-        self._connection = self.connect()
-        self._connection.ioloop.start()
-
-    def stop(self):
-        self._closing = True
-        self.stop_consuming()
-        self._connection.ioloop.start()
-
-    def close_connection(self):
-        self._connection.close()
-
-    def process(self, observable):
+        self._mq_connection = pika.BlockingConnection(
+            parameters=pika.ConnectionParameters(host=cif.options.mq_host, port=cif.options.mq_port)
+        )
+        self._mq_channel = self._mq_connection.channel()
+        self._mq_channel.queue_declare(cif.options.mq_work_queue_name, durable=True)
+        self._mq_channel.exchange_declare(exchange=cif.options.mq_observable_exchange_name, type='fanout')
+        self._mq_channel.basic_qos(prefetch_count=1)
+        self._mq_channel.basic_consume(self.process, cif.options.mq_work_queue_name)
         try:
-            observable = cif.types.Observable(json.loads(observable.decode("utf-8")))
+            self._mq_channel.start_consuming()
+        except KeyboardInterrupt:
+            self._mq_channel.stop_consuming()
+        self._mq_channel.close()
+
+    def process(self, channel, method_frame, header_frame, body):
+        try:
+            observable = cif.types.Observable(json.loads(body.decode("utf-8")))
         except:
             self.logging.exception("Couldn't unserialize JSON object for processing")
             return
@@ -146,9 +67,16 @@ class Thread(threading.Thread):
 
         try:
             self.backend.observable_create(newobservables)
+            channel.basic_ack(delivery_tag=method_frame.delivery_tag)
         finally:
             # Make sure to release the lock even if we encounter but don't trap it.
             self.backendlock.release()
+
+        for observable in newobservables:
+            self._mq_channel.basic_public(cif.options.mq_observable_exchange_name, '', json.dumps(observable.todict()))
+
+    def stop(self):
+        self._mq_channel.stop_consuming()
 
 
 class Process(multiprocessing.Process):
@@ -160,7 +88,7 @@ class Process(multiprocessing.Process):
         self.logging = cif.logging.getLogger("worker #{0}".format(name))
         self.threads = {}
         self.recycle = False
-    
+
     def run(self):
         """Connects to the backend service, spawns and threads off into worker threads that hadnle each observable. One
         backend service connection is shared per thread however each connection *is* automatically thread safe due to
@@ -188,7 +116,7 @@ class Process(multiprocessing.Process):
 
         self.logging.info("Entering worker loop")
         while True:
-            for i in range(1, cif.options.worker_threads_start+1):
+            for i in range(1, cif.options.worker_threads_start + 1):
                 if i not in self.threads or self.threads[i] is None or not self.threads[i].is_alive():
                     self.threads[i] = Thread(self.name, str(i), self.backend, self.backendlock)
                     self.threads[i].start()

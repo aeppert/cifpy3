@@ -1,9 +1,9 @@
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
-import ipaddress
 import datetime
+import ipaddress
 
 import cif
+
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 
 def process(observable=None):
@@ -33,7 +33,8 @@ def process(observable=None):
 
     return [cif.types.Observable(
         {
-            "observable": str(ipaddress.IPv4Interface(str(ipaddress.IPv4Interface(observable.observable).ip) + "/24").network),
+            "observable": str(
+                ipaddress.IPv4Interface(str(ipaddress.IPv4Interface(observable.observable).ip) + "/24").network),
             "prefix": observable.prefix,
             "tags": ["whitelist"],
             "protocol": observable.protocol,
@@ -41,7 +42,7 @@ def process(observable=None):
             "tlp": observable.tlp,
             "group": observable.group,
             "provider": observable.provider,
-            "confidence": observable._degrade_confidence(),
+            "confidence": cif.types.Observable.degrade_confidence(observable),
             "application": observable.application,
             "altid": observable.altid,
             "altid_tlp": observable.altid_tlp,

@@ -1,8 +1,8 @@
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
 import json
 
 from ..parser import Parser
+
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 
 class Json(Parser):

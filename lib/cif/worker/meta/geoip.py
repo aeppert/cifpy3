@@ -1,11 +1,11 @@
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
 import ipaddress
 import os
 
 import pygeoip
 
 import cif
+
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 
 def process(observable=None):

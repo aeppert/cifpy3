@@ -2,9 +2,8 @@
 #
 # cif client - Connects to the cif REST API
 #
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
 import argparse
+import re
 import os
 import sys
 import json
@@ -19,10 +18,12 @@ import requests.exceptions
 import yaml
 import tabulate
 
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
+
 
 ###############################################################################
 # Generic output class
-class output_class(object):
+class Output(object):
     def __init__(self, results, output_handle):
         self.results = results
         self.output_handle = output_handle
@@ -33,9 +34,9 @@ class output_class(object):
 
 ###############################################################################
 # class output_cli
-class output_cli(output_class):
+class OutputCLI(Output):
     def __init__(self, results, output_handle):
-        output_class.__init__(self, results, output_handle)
+        Output.__init__(self, results, output_handle)
 
     def process(self):
         headers = options['select'].split(',')
@@ -50,26 +51,24 @@ class output_cli(output_class):
                 else:
                     row.append('')
             rows.append(row)
-        self.output_handle.write(tabulate.tabulate(rows,
-                            headers=headers,
-                            tablefmt="psql")+"\n")
+        self.output_handle.write(tabulate.tabulate(rows, headers=headers, tablefmt="psql") + "\n")
 
 
 ##############################################################################
 # class output_json
-class output_json(output_class):
+class OutputJSON(Output):
     def __init__(self, results, output_handle):
-        output_class.__init__(self, results, output_handle)
+        Output.__init__(self, results, output_handle)
 
     def process(self):
-        self.output_handle.write(json.dumps(self.results)+"\n")
+        self.output_handle.write(json.dumps(self.results) + "\n")
 
 
 ##############################################################################
 # class output_xml
-class output_xml(output_class):
+class OutputXML(Output):
     def __init__(self, results, output_handle):
-        output_class.__init__(self, results, output_handle)
+        Output.__init__(self, results, output_handle)
 
     def process(self):
         headers = options['select'].split(',')
@@ -86,21 +85,22 @@ class output_xml(output_class):
             for header in headers:
                 if isinstance(result[header], list):
                     if not header.endswith('s'):
-                            header += 's'
+                        header += 's'
                     sub = xml.etree.cElementTree.SubElement(observable, header)
-                    for value in result[header]:
-                        xml.etree.cElementTree.SubElement(sub, header[:-1]).text = value
+                    for val in result[header]:
+                        xml.etree.cElementTree.SubElement(sub, header[:-1]).text = val
                 else:
                     xml.etree.cElementTree.SubElement(observable, header).text = result[header]
 
         tree = xml.etree.cElementTree.ElementTree(observables)
         tree.write(self.output_handle)
 
+
 ##############################################################################
 # class output_csv
-class output_csv(output_class):
+class OutputCSV(Output):
     def __init__(self, results, output_handle):
-        output_class.__init__(self, results, output_handle)
+        Output.__init__(self, results, output_handle)
 
     def process(self):
         headers = options['select'].split(',')
@@ -120,9 +120,9 @@ class output_csv(output_class):
 
 ##############################################################################
 # class output_custom
-class output_custom(output_class):
+class OutputCustom(Output):
     def __init__(self, results, output_handle):
-        output_class.__init__(self, results, output_handle)
+        Output.__init__(self, results, output_handle)
 
     def process(self):
         columns = options['select'].split(',')
@@ -134,30 +134,30 @@ class output_custom(output_class):
                 else:
                     row.append('')
             try:
-                self.output_handle.write(options['format_string'].format(*row)+"\n")
-            except Exception as e:
+                self.output_handle.write(options['format_string'].format(*row) + "\n")
+            except Exception as ex:
                 raise RuntimeError("Could not use custom formatting. column count: {0}; row count: {1}.".format(
                     len(columns), len(row))
-                ) from e
+                ) from ex
 
 
 ##############################################################################
 # class output_single
-class output_single(output_class):
+class OutputSingle(Output):
     def __init__(self, results, output_handle):
-        output_class.__init__(self, results, output_handle)
+        Output.__init__(self, results, output_handle)
 
     def process(self):
         for result in self.results:
             if options['select'] in result:
-                self.output_handle.write(result[options['select']]+"\n")
+                self.output_handle.write(result[options['select']] + "\n")
 
 
 ##############################################################################
 # class output_bro
-class output_bro(output_class):
+class OutputBro(Output):
     otype = {'ipv4': 'ADDR',
-             'url':  'URL',
+             'url': 'URL',
              'fqdn': 'DOMAIN'}
 
     SEP = '|'
@@ -170,7 +170,7 @@ class output_bro(output_class):
                               'meta.source'])
 
     def __init__(self, results, output_handle):
-        output_class.__init__(self, results, output_handle)
+        Output.__init__(self, results, output_handle)
         self.cols = ['observable',
                      'otype',
                      'description',
@@ -180,7 +180,7 @@ class output_bro(output_class):
     def _check_list(self, y):
         ret = y
         if type(y) is list:
-            ret = output_bro.SEP.join(y)
+            ret = OutputBro.SEP.join(y)
         return ret
 
     def process(self):
@@ -188,7 +188,7 @@ class output_bro(output_class):
         for result in self.results:
             r = []
             if result['otype'] is 'url':
-                result['observable'] = re.sub(r'(https?\:\/\/)', '',
+                result['observable'] = re.sub(r'(https?://)', '',
                                               result['observable'])
 
             for c in self.cols:
@@ -196,7 +196,7 @@ class output_bro(output_class):
                 y = self._check_list(y)
                 y = str(y)
                 if c is 'otype':
-                    y = 'Intel::{0}'.format(output_bro.otype[result[c]])
+                    y = 'Intel::{0}'.format(OutputBro.otype[result[c]])
                 if c is 'description':
                     if result[c] is None:
                         y = result['tags']
@@ -206,16 +206,17 @@ class output_bro(output_class):
             text.append("\t".join(r))
 
         text = "\n".join(text)
-        text = "{0}\n{1}".format(output_bro.HEADER, text)
+        text = "{0}\n{1}".format(OutputBro.HEADER, text)
         self.output_handle.write(text)
 
-output_handlers = {'cli':      output_cli,
-                   'json':     output_json,
-                   'xml':      output_xml,
-                   'csv':      output_csv,
-                   'custom':   output_custom,
-                   'single':   output_single,
-                   'bro':      output_bro}
+
+output_handlers = {'cli': OutputCLI,
+                   'json': OutputJSON,
+                   'xml': OutputXML,
+                   'csv': OutputCSV,
+                   'custom': OutputCustom,
+                   'single': OutputSingle,
+                   'bro': OutputBro}
 
 ##############################################################################
 
@@ -261,7 +262,7 @@ if os.path.exists(os.path.expanduser(options['config'])):
         if key not in options or options[key] is None:
             options[key] = value
 
-headers = {}
+request_headers = {}
 
 if options['start'] is None:
     options['start'] = 0
@@ -274,11 +275,13 @@ else:
     options['end'] = None
 
 if options["token"] is not None:
-    headers['Authorization'] = options["token"]
+    request_headers['Authorization'] = options["token"]
 
 results_lock = threading.Lock()
 request_queue = queue.Queue()
 results_list = []
+
+
 def do_request():
     while True:
         task = request_queue.get()
@@ -286,37 +289,37 @@ def do_request():
             request_queue.task_done()
             break
         try:
-            response = requests.get(task['url'], headers=headers, stream=True)
-        except requests.exceptions.ConnectionError as e:
-            sys.stderr.write("[ERROR] Could not make request to CIF Server: {0}\n".format(e))
+            resp = requests.get(task['url'], headers=request_headers, stream=True)
+        except requests.exceptions.ConnectionError as ex:
+            sys.stderr.write("[ERROR] Could not make request to CIF Server: {0}\n".format(ex))
             request_queue.task_done()
             continue
 
-        if response.status_code == 200:
+        if resp.status_code == 200:
             try:
-                result = json.loads(response.text)
+                result = json.loads(resp.text)
                 results_lock.acquire()
                 results_list[task['index']] = result
-            except Exception as e:
-                raise RuntimeError("Could not fetch results from successful query") from e
+            except Exception as ex:
+                raise RuntimeError("Could not fetch results from successful query") from ex
             finally:
                 results_lock.release()
 
-        elif response.status_code == 404:
+        elif resp.status_code == 404:
             break
 
-        elif response.status_code == 401:
-            raise RuntimeError("Invalid Authentication: {0}".format(response.text))
+        elif resp.status_code == 401:
+            raise RuntimeError("Invalid Authentication: {0}".format(resp.text))
 
-        elif response.status_code == 400:
-            raise RuntimeError("Invalid Query: {0}".format(response.text))
+        elif resp.status_code == 400:
+            raise RuntimeError("Invalid Query: {0}".format(resp.text))
 
         request_queue.task_done()
 
 
 # Make a HEAD request to get the count of observables
 try:
-    response = requests.head('{0}/observables?{1}'.format(options['url'], options['query']), headers=headers)
+    response = requests.head('{0}/observables?{1}'.format(options['url'], options['query']), headers=request_headers)
 except requests.exceptions.ConnectionError as e:
     sys.stderr.write("[ERROR] Could not make request to CIF Server: {0}\n".format(e))
     sys.exit(1)
@@ -337,21 +340,20 @@ else:
     # Calculate the number of requests we are going to have to make
     request_count = math.ceil((observable_count - options['start']) / options['chunk_size'])
 
-
 for x in range(0, request_count):
     results_list.append(None)
 
 for x in range(0, request_count):
     request_queue.put({'index': x, 'url': '{0}/observables?start={1}&count={2}&{3}'.format(
-            options['url'], options['start'], options['chunk_size'], options['query'])})
+        options['url'], options['start'], options['chunk_size'], options['query'])})
 
     options['start'] += options['chunk_size']
 
     if options['end'] is not None:
         if options['start'] >= options['end']:
-                break
+            break
         elif options['start'] + options['chunk_size'] > options['end']:
-                options['chunk_size'] = options['end'] - options['start']
+            options['chunk_size'] = options['end'] - options['start']
 
 for x in range(0, options['parallel']):
     request_queue.put(None)
@@ -367,16 +369,16 @@ for worker in workers:
     worker.join()
 
 # Merge the results
-results = []
-for i,v in enumerate(results_list):
+final_results = []
+for i, v in enumerate(final_results):
     if v is None:
         continue
-    results.extend(v)
+    final_results.extend(v)
 
 if options['write'] is not None:
-    output_handle = open(options['write'], 'wt', newline='')
+    outputhandle = open(options['write'], 'wt', newline='')
 else:
-    output_handle = sys.stdout
+    outputhandle = sys.stdout
 
-oh = output_handlers[options['format']](results, output_handle)
+oh = output_handlers[options['format']](final_results, outputhandle)
 oh.process()

@@ -1,12 +1,14 @@
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
+from bs4 import BeautifulSoup
 
 from ..parser import Parser
-from bs4 import BeautifulSoup
+
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
+
 
 class Html(Parser):
     def __init__(self):
         self.html = BeautifulSoup(self.file.read())
-        self.table = self.html.find("table", attrs={"id":self.parsing_details['node']})
+        self.table = self.html.find("table", attrs={"id": self.parsing_details['node']})
         self.headings = [th.get_text().strip() for th in self.table.find("tr").find_all("th")]
         self.entries = []
         for row in self.table.find_all("tr")[1:]:

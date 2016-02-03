@@ -1,6 +1,6 @@
-__author__ = 'James DeVincentis <james.d@hexhost.net>'
-
 import os
+
+__author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 meta = {}
 

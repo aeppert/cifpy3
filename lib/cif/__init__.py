@@ -15,6 +15,7 @@ options = None
 logging = None
 
 from . import api
+from . import client
 from . import backends
 from . import feeder
 from . import types

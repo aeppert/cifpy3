@@ -81,17 +81,6 @@ chmod +x install.sh
 CIFpy3 will automatically install and configure a token for the cli & user that installs CIFpy3. This is the admin token. Any token flagged as an 'admin' is capable of deleting other admins.
 
 
-Updating
---------
-Very simple process to update cifpy3
-
-```
-#!/bin/bash
-cd /usr/local/cifpy3
-git pull
-```
-
-Then reboot your server or just restart the cif-server service.
 
 Usage
 -------
@@ -114,3 +103,16 @@ CIFpy3 comes with a CLI client called 'cif'. This client can be used to manage a
   * Shows HTTP requests sent and received for debugging and advanced API usage
 
 More details are available via the --help argument(> cif --help)
+
+
+Updating
+--------
+Very simple process to update cifpy3
+
+```
+#!/bin/bash
+cd /usr/local/cifpy3
+git pull
+```
+
+Then reboot your server or just restart the cif-server service.

@@ -252,6 +252,8 @@ def hash_type(value):
     :return: Returns a string containing the hash type name or None if no hash type is matched
     :rtype: str or None
     """
+    if not isinstance(value, str):
+        return None
     for htype, pattern in hash_types.items():
         if pattern.match(value) is not None:
             return htype

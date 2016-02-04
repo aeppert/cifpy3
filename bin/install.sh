@@ -149,10 +149,10 @@ if [[ OS_FREEBSD -gt 0 ]]; then
     echo 'rabbitmq_enable="YES"' >> /etc/rc.local
     
     # Download GeoIP data
-    /usr/local/cifpy3/bin/cif-utility -g
+    /usr/local/cifpy3/bin/cif-utility --geoip
 
     # Run the cif initial install
-    TOKEN=$(/usr/local/cifpy3/bin/cif-utility -r)
+    TOKEN=$(/usr/local/cifpy3/bin/cif-utility --install)
 
     # Write the token out to ~/.cif
     echo "${TOKEN}" > ~/.cif
@@ -194,6 +194,9 @@ if [[ OS_CENTOS -gt 0 ]] || [[ OS_REDHAT -gt 0 ]]; then
 
     echo "[INFO] Installing CentOS dependencies..."
     yum -q -y install scl-utils wget java-1.8.0-openjdk-headless net-tools git 
+    wget --no-check-certificate -O /tmp/erlang-18.2-1.el7.centos.x86_64.rpm https://www.rabbitmq.com/releases/erlang/erlang-18.2-1.el7.
+centos.x86_64.rpm
+    yum -q -y install /tmp/erlang-18.2-1.el7.centos.x86_64.rpm
     if [[ $? -ne 0 ]]; then
         echo "[ERROR] Cannot install CentOS dependencies."
         exit
@@ -216,7 +219,7 @@ if [[ OS_CENTOS -gt 0 ]] || [[ OS_REDHAT -gt 0 ]]; then
     echo "[OKAY] Installed Python34"
 
     echo -n "[INFO] Installing RabbitMQ-Server"
-    wget --no-check-certificage -I /tmp/rabbitmq-server-3.3.5-1.noarch.rpm https://www.rabbitmq.com/releases/rabbitmq-server/v3.3.5/rabbitmq-server-3.3.5-1.noarch.rpm
+    wget --no-check-certificate -O /tmp/rabbitmq-server-3.3.5-1.noarch.rpm https://www.rabbitmq.com/releases/rabbitmq-server/v3.3.5/rabbitmq-server-3.3.5-1.noarch.rpm
     rpm --import https://www.rabbitmq.com/rabbitmq-signing-key-public.asc
     yum -q -y install /tmp/rabbitmq-server-3.3.5-1.noarch.rpm
     if [[ $? -ne 0 ]]; then
@@ -279,10 +282,10 @@ if [[ OS_CENTOS -gt 0 ]] || [[ OS_REDHAT -gt 0 ]]; then
     cp /usr/local/cifpy3/scripts/centos/cif-server.sysconfig /etc/sysconfig/cif-server
 
     # Download GeoIP data
-    scl enable rh-python34 -- /usr/local/cifpy3/bin/cif-utility -g
+    scl enable rh-python34 -- /usr/local/cifpy3/bin/cif-utility --geoip
 
     # Run the cif initial install
-    TOKEN=$(scl enable rh-python34 -- /usr/local/cifpy3/bin/cif-utility -r)
+    TOKEN=$(scl enable rh-python34 -- /usr/local/cifpy3/bin/cif-utility --install)
 
     # Write the token out to ~/.cif
     echo "${TOKEN}" > ~/.cif
@@ -417,10 +420,10 @@ if [[ OS_DEBIAN -gt 0 ]] || [[ OS_UBUNTU -gt 0 ]]; then
     fi
 
     # Download GeoIP data
-    /usr/local/cifpy3/bin/cif-utility -g
+    /usr/local/cifpy3/bin/cif-utility --geoip
 
     # Run the cif initial install
-    TOKEN=$(/usr/local/cifpy3/bin/cif-utility -r)
+    TOKEN=$(/usr/local/cifpy3/bin/cif-utility --install)
     
     # Write the token out to ~/.cif
     echo "${TOKEN}" > ~/.cif

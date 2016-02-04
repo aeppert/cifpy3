@@ -152,6 +152,8 @@ connection = pika.BlockingConnection(pika.ConnectionParameters(host=cif.options.
 channel = connection.channel()
 channel.queue_declare(queue=cif.options.mq_work_queue_name, durable=True)
 channel.exchange_declare(exchange=cif.options.mq_observable_exchange_name, type='fanout')
+pika_logger = logging.getLogger('pika')
+pika_logger.setLevel(logging.ERROR)
 
 logger.info("Monitoring Loop: Entering")
 

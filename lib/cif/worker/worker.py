@@ -46,7 +46,7 @@ class Thread(threading.Thread):
         self._mq_channel = self._mq_connection.channel()
         self._mq_channel.queue_declare(cif.options.mq_work_queue_name, durable=True)
         self._mq_channel.exchange_declare(exchange=cif.options.mq_observable_exchange_name, type='fanout')
-        self._mq_channel.basic_qos(prefetch_count=1)
+        self._mq_channel.basic_qos(prefetch_count=2)
         self._mq_channel.basic_consume(self.process, cif.options.mq_work_queue_name)
         try:
             self._mq_channel.start_consuming()

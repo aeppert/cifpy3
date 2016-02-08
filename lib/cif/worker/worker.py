@@ -68,7 +68,6 @@ class Thread(threading.Thread):
         :type body: bytearray
         :return: None
         """
-
         try:
             observable = cif.types.Observable(json.loads(body.decode("utf-8")))
         except:
@@ -76,7 +75,12 @@ class Thread(threading.Thread):
                 channel.basic_nack(delivery_tag=method_frame.delivery_tag)
             self.logging.exception("Couldn't processed unserialized message '{0}'".format(json.loads(body.decode("utf-8"))))
             return
-
+        
+        # If the observable has no otype by now, drop it
+        if observable.otype is None:
+            self.logging.warning("Dropping Observable due to unknown type: '{0}'".format(observable.observable))
+            return
+        
         # Fetch Meta
         for name, meta in cif.worker.meta.meta.items():
             self.logging.debug("Fetching meta using: {0}".format(name))

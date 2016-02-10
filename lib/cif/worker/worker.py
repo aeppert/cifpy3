@@ -12,7 +12,7 @@ __author__ = 'James DeVincentis <james.d@hexhost.net>'
 
 
 class Thread(threading.Thread):
-    def __init__(self, worker, name, backend, backendlock):
+    def __init__(self, worker, name):
         """
         Initialize the worker thread and get ready to process data
 
@@ -20,15 +20,10 @@ class Thread(threading.Thread):
         :type worker: str
         :param name: ID of this thread
         :type name: str
-        :param backend: created and connected backend object
-        :type backend: cif.backends.Backend
-        :param backendlock: Lock for accessing the backend storage system
-        :type backendlock: threading.Lock
         :return: None
         """
         threading.Thread.__init__(self)
-        self.backend = backend
-        self.backendlock = backendlock
+        self._backend = None
         self.logging = cif.logging.getLogger("THREAD #{0}-{1}".format(worker, name))
         self._mq_connection = None
         self._mq_channel = None
@@ -39,6 +34,17 @@ class Thread(threading.Thread):
 
         :return:
         """
+
+        self._backend = __import__("cif.backends.{0:s}".format(cif.options.storage.lower()),
+                                   fromlist=[cif.options.storage.title()])
+        self.logging.debug("Initializing Backend {0}".format(cif.options.storage.title()))
+
+        self._backend = getattr(self._backend, cif.options.storage.title())()
+        self.logging.debug("Connecting to Backend {0}".format(cif.options.storage_uri))
+
+        self._backend.connect(cif.options.storage_uri)
+        self.logging.debug("Connected to Backend {0}".format(cif.options.storage_uri))
+
         self._mq_connection = pika.BlockingConnection(
             parameters=pika.ConnectionParameters(host=cif.options.mq_host, port=cif.options.mq_port,
                                                  retry_delay=1, socket_timeout=3, connection_attempts=5)
@@ -73,12 +79,15 @@ class Thread(threading.Thread):
         except:
             if not method_frame.redelivered:
                 channel.basic_nack(delivery_tag=method_frame.delivery_tag)
-            self.logging.exception("Couldn't processed unserialized message '{0}'".format(json.loads(body.decode("utf-8"))))
+            else:
+                channel.basic_ack(delivery_tag=method_frame.delivery_tag)
+            self.logging.exception("Couldn't process message '{0}'".format(json.loads(body.decode("utf-8"))))
             return
         
         # If the observable has no otype by now, drop it
         if observable.otype is None:
             self.logging.warning("Dropping Observable due to unknown type: '{0}'".format(observable.observable))
+            channel.basic_ack(delivery_tag=method_frame.delivery_tag)
             return
         
         # Fetch Meta
@@ -102,17 +111,15 @@ class Thread(threading.Thread):
 
         newobservables.insert(0, observable)
         self.logging.debug("Sending {0} observables to be created.".format(len(newobservables)))
-        self.backendlock.acquire()
 
         try:
-            self.backend.observable_create(newobservables)
+            self._backend.observable_create(newobservables)
             channel.basic_ack(delivery_tag=method_frame.delivery_tag)
         except:
             if not method_frame.redelivered:
                 channel.basic_nack(delivery_tag=method_frame.delivery_tag)
-        finally:
-            # Make sure to release the lock even if we encounter but don't trap it.
-            self.backendlock.release()
+            else:
+                channel.basic_ack(delivery_tag=method_frame.delivery_tag)
 
         for observable in newobservables:
             self._mq_channel.basic_publish(cif.options.mq_observable_exchange_name, '', json.dumps(observable.todict()))
@@ -132,7 +139,7 @@ class Process(multiprocessing.Process):
         Initialize a worker process and get ready to spawn threads
 
         :param name: ID of this worker
-        :param type: str
+        :type name: str
         :return: None
         """
         multiprocessing.Process.__init__(self)
@@ -157,17 +164,6 @@ class Process(multiprocessing.Process):
             pass
         self.logging.info("Starting")
 
-        backend = __import__("cif.backends.{0:s}".format(cif.options.storage.lower()),
-                             fromlist=[cif.options.storage.title()]
-                             )
-        self.logging.debug("Initializing Backend {0}".format(cif.options.storage.title()))
-
-        self.backend = getattr(backend, cif.options.storage.title())()
-        self.logging.debug("Connecting to Backend {0}".format(cif.options.storage_uri))
-
-        self.backend.connect(cif.options.storage_uri)
-        self.logging.debug("Connected to Backend {0}".format(cif.options.storage_uri))
-
         self.threads = {}
 
         self.logging.info("Entering worker loop")
@@ -175,7 +171,7 @@ class Process(multiprocessing.Process):
             if not self._stopping:
                 for i in range(1, cif.options.worker_threads_start + 1):
                     if i not in self.threads or self.threads[i] is None or not self.threads[i].is_alive():
-                        self.threads[i] = Thread(self.name, str(i), self.backend, self.backendlock)
+                        self.threads[i] = Thread(self.name, str(i))
                         self.threads[i].start()
             time.sleep(5)
 

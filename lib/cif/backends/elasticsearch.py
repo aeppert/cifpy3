@@ -34,8 +34,8 @@ class Elasticsearch(Backend):
             self.conn = http.client.HTTPSConnection(url)
         else:
             raise NotImplementedError("Connection Protocol {0:s} not supported".format(method))
-
-        self._request()
+        
+        self.conn.request("GET", "/")
 
     def disconnect(self):
         """Disconnects from the backend storage.
@@ -56,8 +56,8 @@ class Elasticsearch(Backend):
             self.conn.request("GET", "/")
         except Exception as e:
             try:
-                self.disconnect();
-                self.connect(self.connect_string);
+                self.disconnect()
+                self.connect(self.connect_string)
             except:
                 raise RuntimeError("Ping failed") from e
 

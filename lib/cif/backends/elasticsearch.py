@@ -12,6 +12,7 @@ __author__ = 'James DeVincentis <james.d@hexhost.net>'
 class Elasticsearch(Backend):
     def __init__(self):
         self.conn = None
+        self.connect_string = None
 
     def connect(self, connect_string):
         """Connects to the backend and performs a basic status check
@@ -19,7 +20,8 @@ class Elasticsearch(Backend):
         :param str connect_string: well formed URL for the ElasticSearch HTTP API
         :raises NotImplementedError:
         """
-
+        self.connect_string = connect_string
+        
         if "://" in connect_string:
             (method, url) = connect_string.split("://")
         else:
@@ -39,7 +41,11 @@ class Elasticsearch(Backend):
         """Disconnects from the backend storage.
 
         """
-        self.conn.close()
+        try:
+            self.conn.close()
+        except:
+            pass
+        self.conn = None
 
     def ping(self):
         """Handles a ping request to the backend. This can be useful for checking if it's still alive
@@ -47,9 +53,13 @@ class Elasticsearch(Backend):
         :raises: RuntimeError
         """
         try:
-            self._request()
+            self.conn.request(method, "/")
         except Exception as e:
-            raise RuntimeError("Ping failed") from e
+            try:
+                self.disconnect();
+                self.connect(self.connect_string);
+            except:
+                raise RuntimeError("Ping failed") from e
 
     def observable_search(self, params, start=None, number=None, count_only=False):
         """Uses a list of parameters to build a query and then return the objects from the ElasticSearch backend
@@ -302,6 +312,9 @@ class Elasticsearch(Backend):
         :raises: RuntimeError
         :raises: TimeoutError
         """
+        
+        # Ping the backend to make sure it's still alive
+        self.ping()
 
         args = [path]
 

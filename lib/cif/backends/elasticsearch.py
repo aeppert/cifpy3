@@ -53,7 +53,7 @@ class Elasticsearch(Backend):
         :raises: RuntimeError
         """
         try:
-            self.conn.request(method, "/")
+            self.conn.request("GET", "/")
         except Exception as e:
             try:
                 self.disconnect();

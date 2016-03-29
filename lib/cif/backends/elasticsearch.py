@@ -35,7 +35,7 @@ class Elasticsearch(Backend):
         else:
             raise NotImplementedError("Connection Protocol {0:s} not supported".format(method))
         
-        self.conn.request("GET", "/")
+        self.ping()
         
         
     def disconnect(self):

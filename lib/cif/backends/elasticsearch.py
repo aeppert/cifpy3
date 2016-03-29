@@ -36,7 +36,8 @@ class Elasticsearch(Backend):
             raise NotImplementedError("Connection Protocol {0:s} not supported".format(method))
         
         self.conn.request("GET", "/")
-
+        
+        
     def disconnect(self):
         """Disconnects from the backend storage.
 
@@ -53,7 +54,7 @@ class Elasticsearch(Backend):
         :raises: RuntimeError
         """
         try:
-            self.conn.request("GET", "/")
+            self._request(path="/", ping=False)
         except Exception as e:
             try:
                 self.disconnect()
@@ -300,7 +301,7 @@ class Elasticsearch(Backend):
             del params[param]
         return obj(params, validation=False)
 
-    def _request(self, path='/', body=None, method="GET"):
+    def _request(self, path='/', body=None, method="GET", ping=True):
         """Send a request to the ElasticSearch API
 
         :param str path: URL Path
@@ -314,7 +315,8 @@ class Elasticsearch(Backend):
         """
         
         # Ping the backend to make sure it's still alive
-        self.ping()
+        if ping:
+            self.ping()
 
         args = [path]
 

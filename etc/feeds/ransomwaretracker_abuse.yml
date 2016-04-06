@@ -1,0 +1,22 @@
+parser: regex
+defaults:
+  provider: ransomwaretracker.abuse.ch
+  interval: hourly
+  tlp: green
+  altid_tlp: white
+  tags: ransomware
+  confidence: 85
+
+feeds:
+  ips:
+    remote: http://ransomwaretracker.abuse.ch/downloads/RW_IPBL.txt
+    pattern: '^(?!#)(\S+)$'
+    values: observable
+    tags: ransomware
+    description: "Ransomware Tracker - IP"
+  domains:
+    remote: http://ransomwaretracker.abuse.ch/downloads/RW_DOMBL.txt
+    pattern: '^(?!#)(\S+)$'
+    values: observable
+    tags: ransomware
+    description: "Ransomware Tracker - Domain"

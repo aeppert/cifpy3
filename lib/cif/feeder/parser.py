@@ -2,6 +2,7 @@ import copy
 import os
 import pickle
 import re
+import yaml
 
 import cif
 
@@ -13,6 +14,7 @@ class Parser(object):
         self.basemeta = kwargs["basemeta"]
         self.parsing_details = kwargs["parsing_details"]
         self.parsing = True
+        self.filters = []
         self.journal = None
         self.new_journal = None
         self.total_objects = 0
@@ -80,6 +82,17 @@ class Parser(object):
                 ) from e
         return meta
 
+    def loadfilter(self):
+        t_path = os.path.sep.join([cif.ETCDIR, 'config', 'blacklist.yml'])
+        try:
+            self.filters = yaml.load(open(t_path, 'r').read())
+        except FileNotFoundError:
+            pass
+        
+    def checkblacklist(self, meta):
+        self.loadfilter()
+        return meta['observable'] in self.filters
+        
     def checkjournal(self, observable):
         return observable not in self.journal
 
@@ -105,14 +118,17 @@ class Parser(object):
         else:
             meta = self.assignmeta(line)
 
-        if self.checkjournal(meta["observable"]):
-            try:
-                observable = self.create_observable_from_meta(meta)
-            except Exception as e:
-                self.logging.exception("Could not create observable from meta: {0}: {1}".format(meta, e))
-                return None
-            self.new_journal[meta['observable']] = observable.id
+        if not self.checkblacklist(meta):
+            if self.checkjournal(meta["observable"]):
+                try:
+                    observable = self.create_observable_from_meta(meta)
+                except Exception as e:
+                    self.logging.exception("Could not create observable from meta: {0}: {1}".format(meta, e))
+                    return None
+                self.new_journal[meta['observable']] = observable.id
+            else:
+                self.new_journal[meta['observable']] = self.journal[meta['observable']]
         else:
-            self.new_journal[meta['observable']] = self.journal[meta['observable']]
-
+            self.logging.info("Blacklist Entry Found for '{0}'".format(meta))
+            
         return observable

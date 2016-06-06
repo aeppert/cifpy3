@@ -59,6 +59,8 @@ Prerequisites
   * CentOS 7 or later
   * RHEL 7 or later (with an active RHN subscription)
   * FreeBSD 10.2 or later
+* Python Modules:
+  * netaddr - https://github.com/drkjam/netaddr - pip3 install netaddr
 
 Installation
 -------------

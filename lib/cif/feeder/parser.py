@@ -3,6 +3,7 @@ import os
 import pickle
 import re
 import yaml
+import netaddr
 
 import cif
 
@@ -14,7 +15,8 @@ class Parser(object):
         self.basemeta = kwargs["basemeta"]
         self.parsing_details = kwargs["parsing_details"]
         self.parsing = True
-        self.filters = []
+        self.filter_ips = []
+        self.filter_hosts = []
         self.journal = None
         self.new_journal = None
         self.total_objects = 0
@@ -83,15 +85,28 @@ class Parser(object):
         return meta
 
     def loadfilter(self):
-        t_path = os.path.sep.join([cif.ETCDIR, 'config', 'blacklist.yml'])
+        t_path = os.path.sep.join([ETCDIR, 'config', 'blacklist.yml'])
         try:
-            self.filters = yaml.load(open(t_path, 'r').read())
+            buf = yaml.load(open(t_path, 'r').read())
+
+            for line in buf:
+                try:
+                    self.filter_ips.append(netaddr.IPNetwork(line))
+                except netaddr.core.AddrFormatError:
+                    self.filter_hosts.append(line)
         except FileNotFoundError:
             pass
+    
+    def testfilter(self, test):
+        try:
+            ret = [True for x in self.filter_ips if test in x]
+        except netaddr.core.AddrFormatError:
+            ret = [True for x in self.filter_hosts if test in x]
+        return len(ret) > 0 and ret[0] is True
         
     def checkblacklist(self, meta):
         self.loadfilter()
-        return meta['observable'] in self.filters
+        return self.testfilter(meta['observable'])
         
     def checkjournal(self, observable):
         return observable not in self.journal

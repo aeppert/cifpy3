@@ -41,6 +41,7 @@ Features
   * Comprehensive documentation and code commenting
   * Cross platform compatible
   * More flexable scheduling using hourly, daily, or weekly intervals specified for each feed
+  * Blacklist - cifpy3/etc/config/blacklist.yml
 * Bug Fixes
   * No longer bails out if a single feed fails
   * Handles errors better

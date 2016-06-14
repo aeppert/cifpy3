@@ -61,6 +61,8 @@ group.add_argument('--api-address', dest='host', nargs='?', type=str, default='0
 group.add_argument('--api-port', dest='port', nargs='?', type=int, default=8080, help='Port to listen on')
 group.add_argument('--api-disable-auth', dest='noauth', action="store_true",
                    help='disable authentication (insecure: not recommended)')
+group.add_argument('--api-handler-max-count', dest='handler_max_count', nargs='?', type=int, default=4000,
+                   help='maximum number of observables returend by the backend')
 
 group = parser.add_argument_group('Storage Options')
 group.add_argument('--storage-engine', dest='storage', nargs='?', type=str, default='elasticsearch',

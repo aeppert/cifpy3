@@ -237,7 +237,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     args["group"] = self.token.groups
 
             start = 0
-            count = 1000
+            count = cif.options.handler_max_count
 
             if "start" in args:
                 if isinstance(args["start"], list):

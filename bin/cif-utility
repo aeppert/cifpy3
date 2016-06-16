@@ -133,11 +133,11 @@ if __name__ == "__main__":
         backend.clear()
 
     if "clean" in cif.options and cif.options.clean:
-        date = re.compile('(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})-journal.pickle$')
+        date_rx = re.compile('(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})-journal.pickle$')
         backend.observable_clean(datetime.datetime.now() - datetime.timedelta(days=cif.options.days))
         files = os.listdir(cif.CACHEDIR)
         for file in files:
-            match = date.search(file)
+            match = re.match(date_rx, file)
             if match:
                 matchdict = match.groupdict()
                 date = datetime.datetime(int(matchdict['year']), int(matchdict['month']), int(matchdict['day']))

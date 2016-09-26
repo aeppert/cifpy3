@@ -87,8 +87,8 @@ def process(observable=None):
                 "altid": observable.altid,
                 "altid_tlp": observable.altid_tlp,
                 "rtype": record_type,
-                "lasttime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%I:%SZ"),
-                "reporttime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%I:%SZ")
+                "lasttime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "reporttime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
             })
         )
     return newobservables

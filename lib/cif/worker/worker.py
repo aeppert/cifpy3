@@ -171,6 +171,8 @@ class Process(multiprocessing.Process):
             if not self._stopping:
                 for i in range(1, cif.options.worker_threads_start + 1):
                     if i not in self.threads or self.threads[i] is None or not self.threads[i].is_alive():
+                        if i in self.threads and self.threads[i] is not None:
+                            self.logging.error("Restarting Worker Thread {0}-{1}".format(self.name, i))
                         self.threads[i] = Thread(self.name, str(i))
                         self.threads[i].start()
             time.sleep(5)

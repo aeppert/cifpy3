@@ -50,6 +50,6 @@ def process(observable=None):
             "related": observable.id,
             "peers": observable.peers,
             "lasttime": observable.lasttime,
-            "reportime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%I:%SZ")
+            "reportime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
         }
     )]

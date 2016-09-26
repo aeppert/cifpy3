@@ -126,8 +126,8 @@ def process(observable=None):
                 "altid": altid,
                 "altid_tlp": "green",
                 "related": observable.id,
-                "lasttime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%I:%SZ"),
-                "reporttime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%I:%SZ")
+                "lasttime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "reporttime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
             }
         ))
 

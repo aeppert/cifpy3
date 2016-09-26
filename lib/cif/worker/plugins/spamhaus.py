@@ -72,7 +72,7 @@ def process(observable=None):
     if observable.provider is not None and observable.provider == provider:
         return None
 
-    if observable.otype != "fqdn" and observable.tags != "ipv4":
+    if observable.otype != "fqdn" and observable.otype != "ipv4":
         return None
 
     if observable.otype == "ipv4":

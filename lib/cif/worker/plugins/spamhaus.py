@@ -72,7 +72,7 @@ def process(observable=None):
     if observable.provider is not None and observable.provider == provider:
         return None
 
-    if observable.otype != "fqdn" and observable.tags != "ipv4":
+    if observable.otype != "fqdn" and observable.otype != "ipv4":
         return None
 
     if observable.otype == "ipv4":
@@ -126,8 +126,8 @@ def process(observable=None):
                 "altid": altid,
                 "altid_tlp": "green",
                 "related": observable.id,
-                "lasttime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%I:%SZ"),
-                "reporttime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%I:%SZ")
+                "lasttime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "reporttime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
             }
         ))
 

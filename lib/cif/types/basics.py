@@ -127,20 +127,25 @@ def country(value):
 
 
 def protocol(value):
-    """Check or convert a protocol numeric to it's string value
+    """Check a protocol name or convert a protocol numeric to it's string value
 
     :param value: Value to test
     :type value: str or int
     :return: Tested value
     :rtype: str
     """
-    tmp = {'ip': 1, 'tcp': 6, 'udp': 17}
-    if value in tmp.keys():
-        return tmp[value]
-    elif not isinstance(value, int):
-        raise TypeError("Protocol must be an integer or one of the following strings: {0:s}".format(tmp))
-    else:
-        return value
+    proto = {'ip': 1, 'tcp': 6, 'udp': 17}
+    if isinstance(value, str):
+        if value in proto.keys():
+            return value
+        else:
+            raise TypeError("Protocol must be one of the following strings: ip, tcp, udp")
+    if isinstance(value, int):
+        for k,v in proto.items():
+            if value == v:
+                return k 
+        TypeError("Protocol must be an integer with one of the following values: 1, 6, 17")
+    raise TypeError("Protocol must be an integer (1, 6, 17) or a string (ip, tcp,udp)")
 
 
 def is_ipv4(value):

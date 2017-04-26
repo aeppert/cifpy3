@@ -34,7 +34,7 @@ class Observable(Base):
         self._altid_tlp = 'amber'
         self._additional_data = None
         self._call_super = True
-        self._timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%I:%SZ")
+        self._timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
         self._validation = True
 
         if "validation" in kwargs:
@@ -89,9 +89,9 @@ class Observable(Base):
     def timestamp(self, value):
         if value is not None and self._validation:
             try:
-                value = datetime.datetime.fromtimestamp(int(value)).strftime("%Y-%m-%dT%H:%I:%SZ")
+                value = datetime.datetime.fromtimestamp(int(value)).strftime("%Y-%m-%dT%H:%M:%SZ")
             except:
-                value = dateutil.parser.parse(value).strftime("%Y-%m-%dT%H:%I:%SZ")
+                value = dateutil.parser.parse(value).strftime("%Y-%m-%dT%H:%M:%SZ")
         self._timestamp = value
 
     @property
@@ -264,9 +264,9 @@ class Observable(Base):
     def reporttime(self, value):
         if self._validation and value is not None:
             try:
-                value = datetime.datetime.fromtimestamp(int(value)).strftime("%Y-%m-%dT%H:%I:%SZ")
+                value = datetime.datetime.fromtimestamp(int(value)).strftime("%Y-%m-%dT%H:%M:%SZ")
             except:
-                value = dateutil.parser.parse(value).strftime("%Y-%m-%dT%H:%I:%SZ")
+                value = dateutil.parser.parse(value).strftime("%Y-%m-%dT%H:%M:%SZ")
         self._reporttime = value
 
     @property
@@ -277,9 +277,9 @@ class Observable(Base):
     def firsttime(self, value):
         if self._validation and value is not None:
             try:
-                value = datetime.datetime.fromtimestamp(int(value)).strftime("%Y-%m-%dT%H:%I:%SZ")
+                value = datetime.datetime.fromtimestamp(int(value)).strftime("%Y-%m-%dT%H:%M:%SZ")
             except:
-                value = dateutil.parser.parse(value).strftime("%Y-%m-%dT%H:%I:%SZ")
+                value = dateutil.parser.parse(value).strftime("%Y-%m-%dT%H:%M:%SZ")
         self._firsttime = value
 
     @property
@@ -290,7 +290,7 @@ class Observable(Base):
     def lasttime(self, value):
         if self._validation and value is not None:
             try:
-                value = datetime.datetime.fromtimestamp(int(value)).strftime("%Y-%m-%dT%H:%I:%SZ")
+                value = datetime.datetime.fromtimestamp(int(value)).strftime("%Y-%m-%dT%H:%M:%SZ")
             except:
-                value = dateutil.parser.parse(value).strftime("%Y-%m-%dT%H:%I:%SZ")
+                value = dateutil.parser.parse(value).strftime("%Y-%m-%dT%H:%M:%SZ")
         self._lasttime = value

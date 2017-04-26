@@ -52,6 +52,6 @@ def process(observable=None):
         "protocol": observable.protocol,
         "altid": observable.altid,
         "altid_tlp": observable.altid_tlp,
-        "lasttime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%I:%SZ"),
-        "reporttime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%I:%SZ")
+        "lasttime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "reporttime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
     })]

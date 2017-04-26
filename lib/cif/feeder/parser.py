@@ -122,6 +122,7 @@ class Parser(object):
                     for m in match:
                         if m.group(1) in tmp:
                             tmp[key] = value.replace(m.group(0), tmp[m.group(1)])
+                            value = tmp[key]
 
         return cif.types.Observable(tmp)
 

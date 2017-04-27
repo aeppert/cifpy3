@@ -85,7 +85,7 @@ class Parser(object):
         return meta
 
     def loadfilter(self):
-        t_path = os.path.sep.join([ETCDIR, 'config', 'blacklist.yml'])
+        t_path = os.path.sep.join([cif.ETCDIR, 'config', 'blacklist.yml'])
         try:
             buf = yaml.load(open(t_path, 'r').read())
 

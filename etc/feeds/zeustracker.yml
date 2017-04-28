@@ -23,6 +23,7 @@ feeds:
         values: lasttime
 
   binaries_md5:
+    otype: md5
     remote: https://zeustracker.abuse.ch/monitor.php?urlfeed=binaries
     description: binary
     pattern:
@@ -45,6 +46,7 @@ feeds:
         values: lasttime
 
   configs_md5:
+    otype: md5
     remote: https://zeustracker.abuse.ch/monitor.php?urlfeed=configs
     description: config
     pattern:
@@ -64,6 +66,7 @@ feeds:
         values: observable
 
   domains:
+    otype: fqdn
     parser: regex
     remote: https://zeustracker.abuse.ch/blocklist.php?download=domainblocklist
     pattern: ^(\S+)$
@@ -72,6 +75,7 @@ feeds:
     confidence: 65
 
   ips:
+    otype: ipv4
     parser: regex
     remote: https://zeustracker.abuse.ch/blocklist.php?download=ipblocklist
     pattern: ^(\S+)$

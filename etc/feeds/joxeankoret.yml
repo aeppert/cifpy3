@@ -11,9 +11,11 @@ defaults:
 
 feeds:
   urls:
+    otype: url
     remote: http://malwareurls.joxeankoret.com/normal.txt
     pattern: '^(http:\/\/\S+)$'
 
   domains:
+    otype: domain
     remote: http://malwareurls.joxeankoret.com/domains.txt
     pattern: '^([a-zA-Z0-9]\S+)$'

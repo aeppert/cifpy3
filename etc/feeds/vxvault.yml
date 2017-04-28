@@ -10,5 +10,6 @@ defaults:
 
 feeds:
   urls:
+    otype: url
     remote: http://vxvault.net/URL_List.php
     pattern: '^(http:\/\/\S+)$'
